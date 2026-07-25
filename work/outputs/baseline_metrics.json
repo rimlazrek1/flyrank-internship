@@ -1,0 +1,10 @@
+{
+  "method": "baseline_rule",
+  "label": "is_ctr_underperformer",
+  "slice": "month=2026-03",
+  "n": 101441,
+  "base_rate": 0.3773622105460317,
+  "precision_at_10": 1.0,
+  "precision_at_20": 1.0,
+  "precision_at_50": 1.0
+}
