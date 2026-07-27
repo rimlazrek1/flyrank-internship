@@ -1,0 +1,13 @@
+{
+  "bold_claim": "Our model beats the baseline and finds the pages that need a CTR fix.",
+  "safe_claim": "On a client holdout of March 2026 pages, logistic regression measured higher Precision@K than chance (base rate). Decision-support only \u2014 not causal.",
+  "honest_split": {
+    "split": "AFTER: client holdout",
+    "n_train": 72470,
+    "n_test": 28971,
+    "base_rate": 0.27406717061889474,
+    "precision_at_10": 0.7,
+    "precision_at_20": 0.8,
+    "precision_at_50": 0.84
+  }
+}

@@ -1,0 +1,5 @@
+{
+  "auc_honest": 0.9217091659603542,
+  "auc_leaky": 1.0,
+  "n_false_alarm_examples": 5
+}
