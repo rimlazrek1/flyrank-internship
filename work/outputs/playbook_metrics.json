@@ -1,0 +1,88 @@
+{
+  "lane": "Lane 4 CTR opportunity",
+  "slice": "month=2026-03",
+  "label": "is_ctr_underperformer",
+  "features": [
+    "imp_mar",
+    "ctr_mar",
+    "pos_avg_mar",
+    "engagement_rate_mar",
+    "position_tier"
+  ],
+  "n_pages": 101441,
+  "honest_holdout": {
+    "n_test_pages": 28971,
+    "n_test_clients": 11,
+    "base_rate": 0.27406717061889474,
+    "precision_at_10": 0.7,
+    "precision_at_20": 0.8,
+    "precision_at_50": 0.84
+  },
+  "benchmarks": [
+    {
+      "ranking": "base rate",
+      "P@10": 0.27406717061889474,
+      "P@20": 0.27406717061889474,
+      "P@50": 0.27406717061889474
+    },
+    {
+      "ranking": "ML-07 rule (ctr_gap)",
+      "P@10": 0.5,
+      "P@20": 0.4,
+      "P@50": 0.46
+    },
+    {
+      "ranking": "ML-08 model",
+      "P@10": 0.7,
+      "P@20": 0.8,
+      "P@50": 0.84
+    }
+  ],
+  "archetype_mix": [
+    {
+      "archetype": "high_volume_ctr_gap",
+      "pages": 15135,
+      "action": "review_title_meta",
+      "pct_of_all_pages": 14.920002760225156
+    },
+    {
+      "archetype": "zero_click_visible",
+      "pages": 7271,
+      "action": "check_tracking_first",
+      "pct_of_all_pages": 7.167713252038131
+    },
+    {
+      "archetype": "deep_tier",
+      "pages": 11207,
+      "action": "ranking_not_ctr",
+      "pct_of_all_pages": 11.047801184925227
+    },
+    {
+      "archetype": "thin_volume",
+      "pages": 39517,
+      "action": "monitor_only",
+      "pct_of_all_pages": 38.95564909651916
+    },
+    {
+      "archetype": "healthy",
+      "pages": 28311,
+      "action": "no_action",
+      "pct_of_all_pages": 27.908833706292327
+    }
+  ],
+  "decay": {
+    "top_50_overlap": 0.28,
+    "top_500_overlap": 0.192,
+    "rank_corr": 0.48878643313632447
+  },
+  "minutes_per_review_assumption": 15,
+  "no_go": [
+    "auto-publish title/meta rewrites",
+    "prune / merge / redirect without a human",
+    "act on thin_volume pages",
+    "treat deep_tier as a CTR fix",
+    "promise a click lift to a client",
+    "use ctr_gap / trend_* as model features",
+    "send the raw queue to a client as an audit"
+  ]
+}
