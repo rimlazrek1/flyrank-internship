@@ -1,6 +1,6 @@
 {
   "bold_claim": "Our model beats the baseline and finds the pages that need a CTR fix.",
-  "safe_claim": "On a client holdout of March 2026 pages, logistic regression measured higher Precision@K than chance (base rate). Decision-support only \u2014 not causal.",
+  "safe_claim": "On March 2026 pages, under a client holdout, logistic regression measured Precision@K above the base rate (see numbers in the cell below). A random page split can look different \u2014 we report the grouped number when claiming skill. Week-5 observed the model surfaces high-stake underperformers that the fixed ML-07 ctr_gap rule ranks hundreds of places lower \u2014 even though the rule hits perfect Precision@K on the imp_mar >= 500 pool by design. This is decision-support ranking, not proof that editing a page will raise clicks.",
   "honest_split": {
     "split": "AFTER: client holdout",
     "n_train": 72470,
@@ -9,5 +9,14 @@
     "precision_at_10": 0.7,
     "precision_at_20": 0.8,
     "precision_at_50": 0.84
+  },
+  "random_split_for_gap_only": {
+    "split": "BEFORE: random page split",
+    "n_train": 76080,
+    "n_test": 25361,
+    "base_rate": 0.22089034344071606,
+    "precision_at_10": 0.5,
+    "precision_at_20": 0.65,
+    "precision_at_50": 0.74
   }
 }

@@ -1,31 +1,33 @@
 {
   "label": "is_ctr_underperformer",
   "slice": "month=2026-03",
+  "population": "imp_mar>=500 test pages",
   "random_state": 42,
-  "n_train_pages": 95407,
-  "n_test_pages": 6034,
+  "n_train_pages": 72470,
+  "n_test_pages_all": 28971,
+  "n_test_pages_eligible": 17110,
   "n_train_clients": 33,
   "n_test_clients": 11,
   "methods": [
     {
       "method": "baseline (ctr_gap)",
-      "split": "client holdout (test clients only)",
-      "n_test_pages": 6034,
+      "split": "client holdout (eligible test pages)",
+      "n_test_pages": 17110,
       "n_test_clients": 11,
-      "base_rate": 0.09380178985747431,
-      "precision_at_10": 0.1,
-      "precision_at_20": 0.3,
-      "precision_at_50": 0.2
+      "base_rate": 0.4640561075394506,
+      "precision_at_10": 1.0,
+      "precision_at_20": 1.0,
+      "precision_at_50": 1.0
     },
     {
       "method": "logistic regression",
-      "split": "client holdout (test clients only)",
-      "n_test_pages": 6034,
+      "split": "client holdout (eligible test pages)",
+      "n_test_pages": 17110,
       "n_test_clients": 11,
-      "base_rate": 0.09380178985747431,
-      "precision_at_10": 0.6,
-      "precision_at_20": 0.5,
-      "precision_at_50": 0.52
+      "base_rate": 0.4640561075394506,
+      "precision_at_10": 0.7,
+      "precision_at_20": 0.8,
+      "precision_at_50": 0.84
     }
   ]
 }

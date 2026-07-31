@@ -2,9 +2,10 @@
   "method": "baseline_rule",
   "label": "is_ctr_underperformer",
   "slice": "month=2026-03",
-  "n": 101441,
-  "base_rate": 0.22087716012263287,
-  "precision_at_10": 0.2,
-  "precision_at_20": 0.5,
-  "precision_at_50": 0.48
+  "population": "imp_mar>=500",
+  "n": 61924,
+  "base_rate": 0.3618306310961824,
+  "precision_at_10": 1.0,
+  "precision_at_20": 1.0,
+  "precision_at_50": 1.0
 }
