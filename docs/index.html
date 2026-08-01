@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Ranking pages with weak CTR for their Google position</title>
+  <meta name="description" content="Lane 4 CTR opportunity scoring on the FlyRank ML Internship dataset: baseline vs logistic regression on a client holdout, with an action playbook." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Newsreader:opsz,wght@6..72,500;6..72,600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --ink: #1a1f24;
+      --muted: #5c6670;
+      --line: #d5dde3;
+      --paper: #f7f5f1;
+      --panel: #ffffff;
+      --accent: #0f6b5c;
+      --accent-soft: #e4f2ef;
+      --warn: #7a4b12;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        radial-gradient(1200px 500px at 10% -10%, #e8f0ec 0%, transparent 55%),
+        radial-gradient(900px 400px at 100% 0%, #efe8dc 0%, transparent 50%),
+        var(--paper);
+      font-family: "IBM Plex Sans", system-ui, sans-serif;
+      font-size: 1.05rem;
+      line-height: 1.65;
+    }
+
+    .wrap {
+      width: min(760px, calc(100% - 2rem));
+      margin: 0 auto;
+      padding: 2.5rem 0 4rem;
+    }
+
+    header.site {
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 1.75rem;
+      margin-bottom: 2rem;
+    }
+
+    .meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem 1rem;
+      color: var(--muted);
+      font-size: 0.92rem;
+      margin: 0 0 1rem;
+    }
+
+    .meta span { white-space: nowrap; }
+
+    h1 {
+      font-family: Newsreader, Georgia, serif;
+      font-weight: 600;
+      font-size: clamp(1.9rem, 4vw, 2.55rem);
+      line-height: 1.2;
+      letter-spacing: -0.02em;
+      margin: 0 0 0.75rem;
+    }
+
+    .dek {
+      color: var(--muted);
+      font-size: 1.05rem;
+      margin: 0;
+      max-width: 40rem;
+    }
+
+    nav.toc {
+      margin: 1.5rem 0 0;
+      padding: 1rem 1.1rem;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+    }
+
+    nav.toc strong {
+      display: block;
+      font-size: 0.8rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.5rem;
+    }
+
+    nav.toc ol {
+      margin: 0;
+      padding-left: 1.2rem;
+      columns: 2;
+      gap: 1.5rem;
+      font-size: 0.95rem;
+    }
+
+    nav.toc a { color: var(--accent); text-decoration: none; }
+    nav.toc a:hover { text-decoration: underline; }
+
+    @media (max-width: 640px) {
+      nav.toc ol { columns: 1; }
+    }
+
+    section {
+      margin: 2.25rem 0;
+      scroll-margin-top: 1rem;
+    }
+
+    h2 {
+      font-family: Newsreader, Georgia, serif;
+      font-weight: 600;
+      font-size: 1.55rem;
+      margin: 0 0 0.85rem;
+      padding-bottom: 0.4rem;
+      border-bottom: 1px solid var(--line);
+    }
+
+    h3 {
+      font-size: 1.05rem;
+      font-weight: 600;
+      margin: 1.25rem 0 0.4rem;
+    }
+
+    p { margin: 0 0 0.9rem; }
+
+    ul, ol { margin: 0 0 0.9rem; padding-left: 1.25rem; }
+    li { margin: 0.25rem 0; }
+
+    code, .mono {
+      font-family: "IBM Plex Mono", ui-monospace, monospace;
+      font-size: 0.9em;
+    }
+
+    code {
+      background: var(--accent-soft);
+      padding: 0.1em 0.35em;
+      border-radius: 4px;
+    }
+
+    .callout {
+      background: var(--accent-soft);
+      border-left: 3px solid var(--accent);
+      padding: 0.9rem 1rem;
+      margin: 1rem 0 1.25rem;
+      border-radius: 0 8px 8px 0;
+    }
+
+    .callout p:last-child { margin-bottom: 0; }
+
+    .warn {
+      background: #fff6ea;
+      border-left-color: var(--warn);
+    }
+
+    figure {
+      margin: 1.25rem 0 1.5rem;
+      padding: 0.85rem;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 10px;
+    }
+
+    figure img {
+      display: block;
+      width: 100%;
+      height: auto;
+      border-radius: 4px;
+    }
+
+    figcaption {
+      margin-top: 0.65rem;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.95rem;
+      margin: 0.75rem 0 1.1rem;
+      background: var(--panel);
+    }
+
+    th, td {
+      border: 1px solid var(--line);
+      padding: 0.55rem 0.65rem;
+      text-align: left;
+    }
+
+    th { background: #eef2f5; font-weight: 600; }
+    td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+
+    a { color: var(--accent); }
+
+    footer {
+      margin-top: 3rem;
+      padding-top: 1.25rem;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="site">
+      <p class="meta">
+        <span>Rim Lazrek</span>
+        <span>Lane 4 — CTR / Engagement Opportunity Scoring</span>
+        <span>2026-08-01</span>
+      </p>
+      <h1>Ranking pages with weak CTR for their Google position</h1>
+      <p class="dek">
+        A decision-support ranker for review queues — comparing a transparent
+        <span class="mono">ctr_gap</span> rule to logistic regression on a client holdout.
+      </p>
+      <nav class="toc" aria-label="Contents">
+        <strong>Contents</strong>
+        <ol>
+          <li><a href="#abstract">Abstract</a></li>
+          <li><a href="#introduction">Introduction</a></li>
+          <li><a href="#data">Data</a></li>
+          <li><a href="#methodology">Methodology</a></li>
+          <li><a href="#results">Results</a></li>
+          <li><a href="#limitations">Limitations</a></li>
+          <li><a href="#recommendations">Ranked recommendations</a></li>
+          <li><a href="#reproducibility">Reproducibility</a></li>
+          <li><a href="#acknowledgments">Acknowledgments</a></li>
+        </ol>
+      </nav>
+    </header>
+
+    <section id="abstract">
+      <h2>Abstract</h2>
+      <p>
+        Editors must decide which pages to review first when click-through rate looks weak
+        relative to similar Google ranks. Using March 2026 page-level search performance from
+        the FlyRank ML Internship dataset (~101k pages; ~62k with at least 500 impressions),
+        we compare a transparent <code>ctr_gap</code> ranking rule to logistic regression
+        scored on a client holdout. On the same eligible holdout pool (base rate 46.4%),
+        the rule reaches Precision@50 = 1.00 by construction, while the model reaches 0.84
+        and surfaces high-impression, non-zero-CTR underperformers the rule buries. The output
+        is a decision-support review queue with action archetypes — not a claim that editing a
+        page will raise clicks, and not a prediction of Google’s ranking algorithm.
+      </p>
+    </section>
+
+    <section id="introduction">
+      <h2>Introduction / Problem</h2>
+      <p>
+        <strong>Research question.</strong> Which pages get shown in Google but attract fewer
+        clicks than peers in the same position tier — and which of those should a reviewer open first?
+      </p>
+      <p>
+        <strong>Decision supported.</strong> An editor or SEO reviewer chooses a short list of
+        pages to inspect. For each page they may rewrite title/meta, improve content match,
+        check tracking, or leave the page alone.
+      </p>
+      <p>
+        Raw CTR alone misleads: expected CTR falls sharply from top ranks to deep ranks, and
+        thin-impression pages produce noisy CTR. Comparing CTR within
+        <code>position_tier</code> and requiring enough impressions reduces that noise.
+        Wrong calls still cost time (false alarms) or bury fixable pages (misses).
+      </p>
+      <div class="callout">
+        <p>
+          Claims here are <strong>observed / measured / directional / decision-support</strong>.
+          We do not claim that a rewrite caused more clicks, and we do not claim to have
+          predicted Google’s algorithm.
+        </p>
+      </div>
+    </section>
+
+    <section id="data">
+      <h2>Data</h2>
+      <p>
+        <strong>Source.</strong> FlyRank ML Internship warehouse (public internship release).
+        Primary table: <code>fact_content_daily_performance</code>, aggregated to one row per
+        page for <code>month=2026-03</code>. Joins use pseudonymous hash IDs only.
+      </p>
+      <p>
+        <strong>Scale.</strong> About 9.8M daily rows in March aggregate to
+        <strong>101,441</strong> page-rows. The eligible ranking pool
+        (<code>imp_mar &gt;= 500</code>) has <strong>61,924</strong> pages. Unit of analysis:
+        one page (<code>content_hash_id</code>) owned by one client (<code>client_hash_id</code>).
+      </p>
+      <p>
+        <strong>Fields used.</strong> March impressions, CTR, average position, position tier,
+        and engagement rate when GA4 is available. Proxy label:
+        <code>is_ctr_underperformer</code> = CTR below same-tier median and
+        <code>imp_mar &gt;= 500</code>.
+      </p>
+      <h3>Excluded (and why)</h3>
+      <ul>
+        <li>Hash IDs as model features (identity, not signal)</li>
+        <li><code>trend_direction</code> / <code>trend_pct</code> (other lane; leakage risk)</li>
+        <li>Product flags and raw query text</li>
+        <li>GA4 zeros when tracking is unavailable</li>
+        <li><code>ctr_gap</code> / tier median as <em>model</em> features (label-derived)</li>
+        <li>Overlapping 90-day query facts for this snapshot design</li>
+        <li>Pages with <code>pos_avg_mar = 0</code> (no position data)</li>
+      </ul>
+      <p>
+        <strong>Public safety.</strong> No client names, private site URLs, or raw private
+        queries appear on this page.
+      </p>
+    </section>
+
+    <section id="methodology">
+      <h2>Methodology</h2>
+      <h3>Assumptions</h3>
+      <p>
+        Expected CTR differs by position tier; CTR is noisy below ~500 impressions;
+        same-client pages share site patterns, so validation groups by client; features and
+        label share the March snapshot (review-now ranking, not past→future forecast).
+      </p>
+
+      <h3>Features and label</h3>
+      <p>
+        Five features: <code>imp_mar</code>, <code>ctr_mar</code>, <code>pos_avg_mar</code>,
+        <code>engagement_rate_mar</code>, <code>position_tier</code>. Label
+        <code>is_ctr_underperformer</code> is a “worth a look” proxy, not proof a page is broken.
+      </p>
+
+      <h3>Baseline</h3>
+      <p>
+        Rank eligible pages by <code>ctr_gap</code> = tier-median CTR − page CTR, tie-break
+        <code>imp_mar</code>. Transparent and fair to report — but it reuses label ingredients,
+        so Precision@K is perfect by design and the top fills with zero-click
+        <code>top_3</code> ties.
+      </p>
+
+      <h3>Model</h3>
+      <p>
+        Logistic regression (<code>random_state=42</code>, <code>max_iter=1000</code>) ranks by
+        <code>P(is_ctr_underperformer)</code>. <code>ctr_gap</code> is never a feature.
+      </p>
+
+      <h3>Validation and leakage</h3>
+      <p>
+        Client holdout: ~75% / ~25% of clients (33 train / 11 test). Model vs baseline
+        Precision@K is compared on the same eligible test pages
+        (<code>imp_mar &gt;= 500</code>). Leakage trap: training with <code>ctr_gap</code> as a
+        feature drives ROC AUC to 1.0; honest five-feature AUC stays ≈ 0.92.
+      </p>
+    </section>
+
+    <section id="results">
+      <h2>Results</h2>
+      <p>
+        Same split, same eligible test pool. Client holdout; <code>imp_mar &gt;= 500</code>;
+        base rate <strong>46.4%</strong>.
+      </p>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Ranking</th>
+            <th class="num">P@10</th>
+            <th class="num">P@20</th>
+            <th class="num">P@50</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Base rate (eligible)</td>
+            <td class="num">0.464</td>
+            <td class="num">0.464</td>
+            <td class="num">0.464</td>
+          </tr>
+          <tr>
+            <td>Baseline <code>ctr_gap</code> rule</td>
+            <td class="num">1.00</td>
+            <td class="num">1.00</td>
+            <td class="num">1.00</td>
+          </tr>
+          <tr>
+            <td>Logistic regression</td>
+            <td class="num">0.70</td>
+            <td class="num">0.80</td>
+            <td class="num">0.84</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <figure>
+        <img src="figures/w07_precision_at_k.png" alt="Bar chart of Precision at K for rule vs model vs base rate" />
+        <figcaption>
+          Takeaway: on the eligible holdout pool, the rule hits perfect Precision@K by design;
+          the model sits between base rate and that ceiling.
+        </figcaption>
+      </figure>
+
+      <p>
+        The baseline wins Precision@K <strong>by construction</strong>. Where the model adds
+        value: on held-out clients, model top ranks favor high-impression pages with non-zero
+        CTR that the rule places thousands of ranks lower. Baseline top-10 and model top-10
+        showed 0/10 overlap in Week 5 — different queues, not a tied race on Precision alone.
+      </p>
+
+      <div class="callout">
+        <p>
+          <strong>Safe claim.</strong> On March 2026 pages under a client holdout, logistic
+          regression measured Precision@K above the base rate. The model surfaces high-stake
+          underperformers the fixed rule ranks far lower, even though the rule hits perfect
+          Precision@K on the eligible pool by design. This is decision-support ranking, not
+          proof that editing raises clicks.
+        </p>
+      </div>
+    </section>
+
+    <section id="limitations">
+      <h2>Limitations &amp; honest framing</h2>
+      <ul>
+        <li><strong>Observational only.</strong> No experiment; no causal claim that title/meta edits raise clicks.</li>
+        <li><strong>Proxy label.</strong> Below-tier-median CTR ≠ “broken page.” Zero-click SERPs and tracking gaps can look like title problems.</li>
+        <li><strong>Same-month snapshot.</strong> Features and label both come from March 2026 — a review-now ranking, not a forecast.</li>
+        <li><strong>Sparse GA4.</strong> Engagement is missing for many clients.</li>
+        <li><strong>Queue decays.</strong> Half-month top-50 overlap was only 0.28 — rebuild often.</li>
+        <li><strong>Precision@K vs usefulness.</strong> Perfect baseline Precision@K does not mean the best human review order.</li>
+        <li><strong>Not Google’s algorithm.</strong> We score pages for reviewer attention only.</li>
+      </ul>
+
+      <figure>
+        <img src="figures/w07_queue_stability.png" alt="Chart showing half-month queue stability and overlap" />
+        <figcaption>
+          Takeaway: the top of the queue moves within the month — treat rankings as perishable.
+        </figcaption>
+      </figure>
+    </section>
+
+    <section id="recommendations">
+      <h2>Ranked recommendations</h2>
+      <p>
+        Score the current-month portfolio with the logistic model. Sort actionable archetypes
+        first, then by model score. Before acting: confirm <code>imp_mar &gt;= 500</code>,
+        compare CTR to the own-tier median, rule out zero-click SERPs, and verify tracking.
+      </p>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Archetype</th>
+            <th class="num">Share of pages</th>
+            <th>Suggested action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>high_volume_ctr_gap</code></td>
+            <td class="num">~15%</td>
+            <td><code>review_title_meta</code></td>
+          </tr>
+          <tr>
+            <td><code>zero_click_visible</code></td>
+            <td class="num">~7%</td>
+            <td><code>check_tracking_first</code></td>
+          </tr>
+          <tr>
+            <td><code>deep_tier</code></td>
+            <td class="num">~11%</td>
+            <td><code>ranking_not_ctr</code> (not a CTR fix)</td>
+          </tr>
+          <tr>
+            <td><code>thin_volume</code></td>
+            <td class="num">~39%</td>
+            <td><code>monitor_only</code></td>
+          </tr>
+          <tr>
+            <td><code>healthy</code></td>
+            <td class="num">~28%</td>
+            <td><code>no_action</code></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <figure>
+        <img src="figures/w07_archetype_mix.png" alt="Bar chart of archetype mix across pages" />
+        <figcaption>
+          Takeaway: most pages are monitor/healthy; review budget should focus on high-volume
+          CTR gaps and tracking checks.
+        </figcaption>
+      </figure>
+
+      <div class="callout warn">
+        <p><strong>No-go list.</strong> Do not auto-publish rewrites; do not prune/merge without
+        a human; do not act on thin-volume pages; do not treat deep-tier as a CTR fix; do not
+        promise click lifts; do not use <code>ctr_gap</code> / <code>trend_*</code> as model
+        features; do not ship the raw queue as a client audit.</p>
+      </div>
+    </section>
+
+    <section id="reproducibility">
+      <h2>Reproducibility</h2>
+      <ol>
+        <li>Clone the repo; install the project environment.</li>
+        <li><code>HF_TOKEN</code> in <code>.env</code> only if regenerating warehouse frames (not needed to re-read committed metrics).</li>
+        <li>Run in order: <code>w03_data_contract.ipynb</code> → <code>w04_baseline_score.ipynb</code> → <code>w05_model.ipynb</code> → <code>w06_validation_audit.ipynb</code> → <code>w07_action_playbook.ipynb</code> → <code>capstone.ipynb</code>.</li>
+        <li>Seeds: <code>random_state=42</code>. Receipts live in <code>work/outputs/</code>; figures in <code>work/figures/</code>.</li>
+      </ol>
+      <p>
+        Source notebooks and report:
+        <a href="https://github.com/rimlazrek1/flyrank-internship/blob/main/work/notebooks/capstone.ipynb">capstone.ipynb</a>
+        ·
+        <a href="https://github.com/rimlazrek1/flyrank-internship/blob/main/work/capstone_report.md">capstone_report.md</a>
+        ·
+        <a href="https://github.com/rimlazrek1/flyrank-internship">repository</a>
+      </p>
+    </section>
+
+    <section id="acknowledgments">
+      <h2>Acknowledgments &amp; data credit</h2>
+      <p>
+        Built on the <a href="https://flyrank.ai">FlyRank ML Internship dataset</a>.
+      </p>
+      <p>
+        Thanks to the FlyRank internship program for the warehouse release, lane framing, and
+        evaluation standards that keep claims public-safe and decision-support honest.
+      </p>
+    </section>
+
+    <footer>
+      <p>
+        Decision-support research page · Precision@K always reported next to base rate ·
+        no client-identifying details.
+      </p>
+    </footer>
+  </div>
+</body>
+</html>
