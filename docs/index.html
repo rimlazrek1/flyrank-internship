@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Ranking pages with weak CTR for their Google position</title>
-  <meta name="description" content="Lane 4 CTR opportunity scoring on the FlyRank ML Internship dataset: baseline vs logistic regression on a client holdout, with an action playbook." />
+  <meta name="description" content="CTR opportunity scoring on the FlyRank ML Internship dataset: baseline vs logistic regression on a client holdout." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Newsreader:opsz,wght@6..72,500;6..72,600&display=swap" rel="stylesheet" />
@@ -17,7 +17,6 @@
       --panel: #ffffff;
       --accent: #0f6b5c;
       --accent-soft: #e4f2ef;
-      --warn: #7a4b12;
     }
 
     * { box-sizing: border-box; }
@@ -70,7 +69,7 @@
       color: var(--muted);
       font-size: 1.05rem;
       margin: 0;
-      max-width: 40rem;
+      max-width: 42rem;
     }
 
     nav.toc {
@@ -151,11 +150,6 @@
 
     .callout p:last-child { margin-bottom: 0; }
 
-    .warn {
-      background: #fff6ea;
-      border-left-color: var(--warn);
-    }
-
     figure {
       margin: 1.25rem 0 1.5rem;
       padding: 0.85rem;
@@ -174,7 +168,8 @@
     figcaption {
       margin-top: 0.65rem;
       color: var(--muted);
-      font-size: 0.92rem;
+      font-size: 0.95rem;
+      line-height: 1.55;
     }
 
     table {
@@ -195,14 +190,6 @@
     td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
 
     a { color: var(--accent); }
-
-    footer {
-      margin-top: 3rem;
-      padding-top: 1.25rem;
-      border-top: 1px solid var(--line);
-      color: var(--muted);
-      font-size: 0.95rem;
-    }
   </style>
 </head>
 <body>
@@ -210,13 +197,14 @@
     <header class="site">
       <p class="meta">
         <span>Rim Lazrek</span>
-        <span>Lane 4 — CTR / Engagement Opportunity Scoring</span>
+        <span>Subject: CTR / Engagement Opportunity Scoring</span>
         <span>2026-08-01</span>
       </p>
       <h1>Ranking pages with weak CTR for their Google position</h1>
       <p class="dek">
-        A decision-support ranker for review queues — comparing a transparent
-        <span class="mono">ctr_gap</span> rule to logistic regression on a client holdout.
+        Which pages look weak on clicks for their Google rank, and which ones should a reviewer open first?
+        This page compares a simple <span class="mono">ctr_gap</span> rule with a logistic model
+        on anonymized March 2026 search data.
       </p>
       <nav class="toc" aria-label="Contents">
         <strong>Contents</strong>
@@ -237,40 +225,48 @@
     <section id="abstract">
       <h2>Abstract</h2>
       <p>
-        Editors must decide which pages to review first when click-through rate looks weak
-        relative to similar Google ranks. Using March 2026 page-level search performance from
-        the FlyRank ML Internship dataset (~101k pages; ~62k with at least 500 impressions),
-        we compare a transparent <code>ctr_gap</code> ranking rule to logistic regression
-        scored on a client holdout. On the same eligible holdout pool (base rate 46.4%),
-        the rule reaches Precision@50 = 1.00 by construction, while the model reaches 0.84
-        and surfaces high-impression, non-zero-CTR underperformers the rule buries. The output
-        is a decision-support review queue with action archetypes — not a claim that editing a
-        page will raise clicks, and not a prediction of Google’s ranking algorithm.
+        Content teams often need a short list of pages to check when click-through rate
+        (<code>ctr</code>) looks low. Low <code>ctr</code> is not always a problem though:
+        pages deep in Google usually get fewer clicks than pages near the top. So we ask a
+        narrower question: which pages get shown enough times, but still click worse than
+        other pages in the same <code>position_tier</code>?
+      </p>
+      <p>
+        We use the FlyRank ML Internship warehouse, focusing on March 2026
+        (<code>month=2026-03</code>). After aggregating daily rows to one row per page, we have
+        101,441 pages. 61,924 of them have at least 500 impressions that month
+        (<code>imp_mar &gt;= 500</code>). On a client holdout, a hand rule based on
+        <code>ctr_gap</code> gets perfect Precision@50 because it is built from the same
+        pieces as the label. A logistic model gets Precision@50 = 0.84 (base rate 0.464 on the
+        same eligible test pages) and tends to put high-impression pages with non-zero
+        <code>ctr_mar</code> nearer the top. The result is a ranked review list. It is not proof
+        that editing a page will raise clicks, and it is not a model of Google's ranking system.
       </p>
     </section>
 
     <section id="introduction">
       <h2>Introduction / Problem</h2>
       <p>
-        <strong>Research question.</strong> Which pages get shown in Google but attract fewer
-        clicks than peers in the same position tier — and which of those should a reviewer open first?
+        Imagine an editor with hundreds of pages that get Google impressions. They cannot open
+        every URL. They need a ranked list: start here first.
       </p>
       <p>
-        <strong>Decision supported.</strong> An editor or SEO reviewer chooses a short list of
-        pages to inspect. For each page they may rewrite title/meta, improve content match,
-        check tracking, or leave the page alone.
+        The hard part is that <code>ctr</code> alone is a bad sorting key. A page in
+        <code>position_tier = deep</code> can have a low <code>ctr</code> for a normal reason:
+        people see it lower on the results page. A page in <code>top_3</code> with a weak
+        <code>ctr</code> is more interesting. Also, if <code>impressions</code> are tiny,
+        <code>ctr</code> jumps around by luck.
       </p>
       <p>
-        Raw CTR alone misleads: expected CTR falls sharply from top ranks to deep ranks, and
-        thin-impression pages produce noisy CTR. Comparing CTR within
-        <code>position_tier</code> and requiring enough impressions reduces that noise.
-        Wrong calls still cost time (false alarms) or bury fixable pages (misses).
+        So the decision we support is: which pages should a reviewer check first because
+        <code>ctr_mar</code> looks weak for that page's <code>position_tier</code>, while
+        <code>imp_mar</code> is high enough to trust? A wrong pick wastes time (false alarm)
+        or buries a page that was worth checking (miss).
       </p>
       <div class="callout">
         <p>
-          Claims here are <strong>observed / measured / directional / decision-support</strong>.
-          We do not claim that a rewrite caused more clicks, and we do not claim to have
-          predicted Google’s algorithm.
+          Everything below is meant as decision support. We measured ranking quality on held-out
+          clients. We did not run an experiment that proves a rewrite causes more clicks.
         </p>
       </div>
     </section>
@@ -278,82 +274,111 @@
     <section id="data">
       <h2>Data</h2>
       <p>
-        <strong>Source.</strong> FlyRank ML Internship warehouse (public internship release).
-        Primary table: <code>fact_content_daily_performance</code>, aggregated to one row per
-        page for <code>month=2026-03</code>. Joins use pseudonymous hash IDs only.
+        This work uses the <strong>FlyRank ML Internship dataset</strong>, an anonymized search
+        and content warehouse built for interns. Clients and pages are identified only with hash
+        IDs such as <code>client_hash_id</code> and <code>content_hash_id</code>. There are no
+        public client names or site URLs in the analysis we report here.
       </p>
       <p>
-        <strong>Scale.</strong> About 9.8M daily rows in March aggregate to
-        <strong>101,441</strong> page-rows. The eligible ranking pool
-        (<code>imp_mar &gt;= 500</code>) has <strong>61,924</strong> pages. Unit of analysis:
-        one page (<code>content_hash_id</code>) owned by one client (<code>client_hash_id</code>).
+        The full warehouse is large. The main daily table,
+        <code>fact_content_daily_performance</code>, has about 79 million rows at the grain
+        <code>report_date × client × content</code>, covering roughly January 2025 through June
+        2026. Related tables include <code>dim_clients</code>, <code>dim_content</code>, and a
+        query-level table <code>fact_content_query_90d</code>. We did not use the query table for
+        modeling, because its fixed 90-day window overlaps recent months and is easy to misuse.
       </p>
       <p>
-        <strong>Fields used.</strong> March impressions, CTR, average position, position tier,
-        and engagement rate when GA4 is available. Proxy label:
-        <code>is_ctr_underperformer</code> = CTR below same-tier median and
-        <code>imp_mar &gt;= 500</code>.
+        For this project we worked on one mid-panel month partition:
+        <code>month=2026-03</code>. That March slice alone has about 9.8 million daily rows.
+        We rolled those days up to <strong>one row per page</strong> for March. After dropping
+        pages with missing <code>ctr_mar</code> or <code>pos_avg_mar</code>, the modeling frame
+        has <strong>101,441</strong> pages across the clients present in that slice. The
+        "eligible" pool we use for the baseline and for Precision@K comparisons is pages with
+        <code>imp_mar &gt;= 500</code>: <strong>61,924</strong> pages.
       </p>
-      <h3>Excluded (and why)</h3>
+      <h3>What the main fields mean</h3>
       <ul>
-        <li>Hash IDs as model features (identity, not signal)</li>
-        <li><code>trend_direction</code> / <code>trend_pct</code> (other lane; leakage risk)</li>
-        <li>Product flags and raw query text</li>
-        <li>GA4 zeros when tracking is unavailable</li>
-        <li><code>ctr_gap</code> / tier median as <em>model</em> features (label-derived)</li>
-        <li>Overlapping 90-day query facts for this snapshot design</li>
-        <li>Pages with <code>pos_avg_mar = 0</code> (no position data)</li>
+        <li><code>imp_mar</code>: total Google impressions for the page in March.</li>
+        <li><code>ctr_mar</code>: clicks divided by impressions for March. In this dataset, rates
+          are stored as percentage points, so <code>0.35</code> means 0.35%, not 35%.</li>
+        <li><code>pos_avg_mar</code>: average Google position in March.
+          <code>0</code> means "no position data," not a real rank, so those pages are dropped.</li>
+        <li><code>position_tier</code>: a bucket built from average position (for example
+          <code>top_3</code>, <code>page_1</code>, <code>deep</code>). This is how we compare
+          like with like.</li>
+        <li><code>engagement_rate_mar</code>: on-site engagement from GA4 when tracking exists.
+          Many clients do not have usable GA4 in this month. When
+          <code>ga4_data_available</code> is not true, zeros are not real "no engagement," so we
+          treat that carefully.</li>
       </ul>
+      <h3>Label</h3>
       <p>
-        <strong>Public safety.</strong> No client names, private site URLs, or raw private
-        queries appear on this page.
+        We define <code>is_ctr_underperformer = 1</code> when a page's <code>ctr_mar</code> is
+        below the median <code>ctr_mar</code> of its own <code>position_tier</code>, and
+        <code>imp_mar &gt;= 500</code>. That is a proxy for "worth a look," not a claim that the
+        page is broken.
       </p>
+      <h3>What we left out</h3>
+      <ul>
+        <li><code>client_hash_id</code> / <code>content_hash_id</code> as model features (IDs only, used for joins and the client split)</li>
+        <li><code>trend_direction</code> and <code>trend_pct</code> (those belong to a different refresh/decline lane, and they can leak a label)</li>
+        <li>raw query text and product flags</li>
+        <li><code>ctr_gap</code> and tier median as model features (they are built from the label recipe)</li>
+        <li>the June sealed sample month as our development month (we used March instead)</li>
+      </ul>
     </section>
 
     <section id="methodology">
       <h2>Methodology</h2>
       <h3>Assumptions</h3>
       <p>
-        Expected CTR differs by position tier; CTR is noisy below ~500 impressions;
-        same-client pages share site patterns, so validation groups by client; features and
-        label share the March snapshot (review-now ranking, not past→future forecast).
+        Expected <code>ctr</code> depends on <code>position_tier</code>. Below about 500
+        impressions, <code>ctr_mar</code> is noisy. Pages from the same client share site habits,
+        so a random page split would look too easy. Features and the label both come from March,
+        so this is a "what should we review now?" score, not a forecast of next month.
       </p>
 
-      <h3>Features and label</h3>
+      <h3>Features</h3>
       <p>
-        Five features: <code>imp_mar</code>, <code>ctr_mar</code>, <code>pos_avg_mar</code>,
-        <code>engagement_rate_mar</code>, <code>position_tier</code>. Label
-        <code>is_ctr_underperformer</code> is a “worth a look” proxy, not proof a page is broken.
+        The model uses five fields knowable at review time:
+        <code>imp_mar</code>, <code>ctr_mar</code>, <code>pos_avg_mar</code>,
+        <code>engagement_rate_mar</code>, and <code>position_tier</code>.
       </p>
 
       <h3>Baseline</h3>
       <p>
-        Rank eligible pages by <code>ctr_gap</code> = tier-median CTR − page CTR, tie-break
-        <code>imp_mar</code>. Transparent and fair to report — but it reuses label ingredients,
-        so Precision@K is perfect by design and the top fills with zero-click
-        <code>top_3</code> ties.
+        The hand baseline ranks eligible pages by
+        <code>ctr_gap = tier_median_ctr - ctr_mar</code>, and breaks ties with
+        <code>imp_mar</code>. It is clear and fair to report. It also reuses the same ingredients
+        as <code>is_ctr_underperformer</code>, so Precision@K looks perfect by design. In practice
+        the top of that list fills with zero-click <code>top_3</code> pages that all share a large
+        <code>ctr_gap</code>.
       </p>
 
       <h3>Model</h3>
       <p>
-        Logistic regression (<code>random_state=42</code>, <code>max_iter=1000</code>) ranks by
-        <code>P(is_ctr_underperformer)</code>. <code>ctr_gap</code> is never a feature.
+        We fit logistic regression (<code>random_state=42</code>, <code>max_iter=1000</code>) and
+        rank pages by the predicted probability of <code>is_ctr_underperformer</code>.
+        <code>ctr_gap</code> is never fed to the model.
       </p>
 
-      <h3>Validation and leakage</h3>
+      <h3>Validation and leakage check</h3>
       <p>
-        Client holdout: ~75% / ~25% of clients (33 train / 11 test). Model vs baseline
-        Precision@K is compared on the same eligible test pages
-        (<code>imp_mar &gt;= 500</code>). Leakage trap: training with <code>ctr_gap</code> as a
-        feature drives ROC AUC to 1.0; honest five-feature AUC stays ≈ 0.92.
+        We hold out about 25% of clients (11 test clients, 33 train clients). All pages from a
+        held-out client stay in test. Model and baseline are compared on the same eligible test
+        pages with <code>imp_mar &gt;= 500</code>. As a leakage check, if we illegally add
+        <code>ctr_gap</code> as a feature, ROC AUC jumps to 1.0. With the honest five features,
+        AUC stays around 0.92.
       </p>
     </section>
 
     <section id="results">
       <h2>Results</h2>
       <p>
-        Same split, same eligible test pool. Client holdout; <code>imp_mar &gt;= 500</code>;
-        base rate <strong>46.4%</strong>.
+        Numbers below use the same client holdout and the same eligible test pool
+        (<code>imp_mar &gt;= 500</code>). That pool has 17,110 test pages. The base rate of
+        <code>is_ctr_underperformer</code> there is <strong>46.4%</strong>. Precision@K asks:
+        of the top K pages in the ranked list, what share truly have the label = 1?
       </p>
 
       <table>
@@ -388,47 +413,51 @@
       </table>
 
       <figure>
-        <img src="figures/w07_precision_at_k.png" alt="Bar chart of Precision at K for rule vs model vs base rate" />
+        <img src="figures/w07_precision_at_k.png" alt="Bar chart comparing Precision at K for the ctr_gap rule, the logistic model, and the base rate" />
         <figcaption>
-          Takeaway: on the eligible holdout pool, the rule hits perfect Precision@K by design;
-          the model sits between base rate and that ceiling.
+          <strong>Figure 1. Precision@K on eligible held-out pages.</strong>
+          The grey dashed line is the base rate (0.464): if you picked pages at random from this
+          pool, about 46% would already be underperformers. The <code>ctr_gap</code> rule hits
+          1.0 at K = 10, 20, and 50 because ranking by that gap is almost the same recipe as the
+          label. The logistic model lands at 0.70 / 0.80 / 0.84. That is below the hand rule on
+          this metric, but still well above chance. The useful question is not only "who wins
+          Precision@K," but which list is better for a human to work through.
         </figcaption>
       </figure>
 
       <p>
-        The baseline wins Precision@K <strong>by construction</strong>. Where the model adds
-        value: on held-out clients, model top ranks favor high-impression pages with non-zero
-        CTR that the rule places thousands of ranks lower. Baseline top-10 and model top-10
-        showed 0/10 overlap in Week 5 — different queues, not a tied race on Precision alone.
+        On that second point, the two lists disagree a lot. In the Week 5 notebook, the baseline
+        top 10 and the model top 10 shared <strong>0 of 10</strong> pages. The model more often
+        lifted pages with large <code>imp_mar</code> and non-zero <code>ctr_mar</code>, while the
+        rule packed the top with zero-click <code>top_3</code> ties. So the model is not "better
+        Precision@K." It is a different ordering that puts more review stake near the top.
       </p>
-
-      <div class="callout">
-        <p>
-          <strong>Safe claim.</strong> On March 2026 pages under a client holdout, logistic
-          regression measured Precision@K above the base rate. The model surfaces high-stake
-          underperformers the fixed rule ranks far lower, even though the rule hits perfect
-          Precision@K on the eligible pool by design. This is decision-support ranking, not
-          proof that editing raises clicks.
-        </p>
-      </div>
+      <p>
+        A random page split (shown only as a sensitivity check) looked weaker
+        (Precision@50 = 0.74). The number we publish for skill is the client-holdout result.
+      </p>
     </section>
 
     <section id="limitations">
-      <h2>Limitations &amp; honest framing</h2>
+      <h2>Limitations</h2>
       <ul>
-        <li><strong>Observational only.</strong> No experiment; no causal claim that title/meta edits raise clicks.</li>
-        <li><strong>Proxy label.</strong> Below-tier-median CTR ≠ “broken page.” Zero-click SERPs and tracking gaps can look like title problems.</li>
-        <li><strong>Same-month snapshot.</strong> Features and label both come from March 2026 — a review-now ranking, not a forecast.</li>
-        <li><strong>Sparse GA4.</strong> Engagement is missing for many clients.</li>
-        <li><strong>Queue decays.</strong> Half-month top-50 overlap was only 0.28 — rebuild often.</li>
-        <li><strong>Precision@K vs usefulness.</strong> Perfect baseline Precision@K does not mean the best human review order.</li>
-        <li><strong>Not Google’s algorithm.</strong> We score pages for reviewer attention only.</li>
+        <li>This is observational. We did not A/B test title or meta changes.</li>
+        <li><code>is_ctr_underperformer</code> is only a proxy. A page can sit below its tier median for many reasons, including a zero-click search result or missing tracking.</li>
+        <li>Features and label both come from March 2026. This is not a past-to-future forecast.</li>
+        <li>GA4 coverage is sparse. <code>engagement_rate_mar</code> is missing or unreliable for many clients.</li>
+        <li>Perfect baseline Precision@K does not mean the baseline is the best review queue for people.</li>
+        <li>We are not reverse-engineering Google.</li>
       </ul>
 
       <figure>
-        <img src="figures/w07_queue_stability.png" alt="Chart showing half-month queue stability and overlap" />
+        <img src="figures/w07_queue_stability.png" alt="Chart of how much the top of the ranked queue overlaps between the first and second half of March" />
         <figcaption>
-          Takeaway: the top of the queue moves within the month — treat rankings as perishable.
+          <strong>Figure 2. Queue stability inside March.</strong>
+          We rebuilt the ranked list on March 1 to 15 and again on March 16 to 31, then asked how
+          much the tops matched. Only about <strong>28%</strong> of the top 50 pages were the
+          same across the two halves (top 500 overlap was about 19%). In plain terms: the "open
+          these first" list goes stale quickly. A team should rebuild the queue often, not treat
+          one export as a permanent audit.
         </figcaption>
       </figure>
     </section>
@@ -436,9 +465,13 @@
     <section id="recommendations">
       <h2>Ranked recommendations</h2>
       <p>
-        Score the current-month portfolio with the logistic model. Sort actionable archetypes
-        first, then by model score. Before acting: confirm <code>imp_mar &gt;= 500</code>,
-        compare CTR to the own-tier median, rule out zero-click SERPs, and verify tracking.
+        For day-to-day use, score the current month with the logistic model, then sort by a
+        simple page type (archetype) and by model score. Before spending time on a page, check
+        that <code>imp_mar &gt;= 500</code>, compare <code>ctr_mar</code> to the median of that
+        page's own <code>position_tier</code>, and make sure tracking looks sane.
+      </p>
+      <p>
+        Across all 101,441 March pages, the archetype mix looks like this:
       </p>
 
       <table>
@@ -446,69 +479,68 @@
           <tr>
             <th>Archetype</th>
             <th class="num">Share of pages</th>
-            <th>Suggested action</th>
+            <th>Suggested next step</th>
           </tr>
         </thead>
         <tbody>
           <tr>
             <td><code>high_volume_ctr_gap</code></td>
             <td class="num">~15%</td>
-            <td><code>review_title_meta</code></td>
+            <td>Review title and meta first</td>
           </tr>
           <tr>
             <td><code>zero_click_visible</code></td>
             <td class="num">~7%</td>
-            <td><code>check_tracking_first</code></td>
+            <td>Check tracking / zero-click SERP issues first</td>
           </tr>
           <tr>
             <td><code>deep_tier</code></td>
             <td class="num">~11%</td>
-            <td><code>ranking_not_ctr</code> (not a CTR fix)</td>
+            <td>This is mostly a ranking problem, not a CTR rewrite</td>
           </tr>
           <tr>
             <td><code>thin_volume</code></td>
             <td class="num">~39%</td>
-            <td><code>monitor_only</code></td>
+            <td>Monitor only; <code>ctr_mar</code> is too noisy</td>
           </tr>
           <tr>
             <td><code>healthy</code></td>
             <td class="num">~28%</td>
-            <td><code>no_action</code></td>
+            <td>No action from this score</td>
           </tr>
         </tbody>
       </table>
 
       <figure>
-        <img src="figures/w07_archetype_mix.png" alt="Bar chart of archetype mix across pages" />
+        <img src="figures/w07_archetype_mix.png" alt="Bar chart of how many pages fall into each action archetype" />
         <figcaption>
-          Takeaway: most pages are monitor/healthy; review budget should focus on high-volume
-          CTR gaps and tracking checks.
+          <strong>Figure 3. How March pages split by archetype.</strong>
+          Most of the portfolio is <code>thin_volume</code> or <code>healthy</code>. That matters
+          because a naive "sort everything by low CTR" process would burn time on pages that are
+          either fine or too small to trust. The smaller slices
+          (<code>high_volume_ctr_gap</code> and <code>zero_click_visible</code>) are where a
+          reviewer should spend the first hours. <code>deep_tier</code> pages may need ranking
+          work, but rewriting title tags alone is usually the wrong first move there.
         </figcaption>
       </figure>
 
-      <div class="callout warn">
-        <p><strong>No-go list.</strong> Do not auto-publish rewrites; do not prune/merge without
-        a human; do not act on thin-volume pages; do not treat deep-tier as a CTR fix; do not
-        promise click lifts; do not use <code>ctr_gap</code> / <code>trend_*</code> as model
-        features; do not ship the raw queue as a client audit.</p>
-      </div>
+      <p>
+        Confidence is moderate for ranking review attention on this March slice. Confidence is
+        low for promising any client a click lift.
+      </p>
     </section>
 
     <section id="reproducibility">
       <h2>Reproducibility</h2>
       <ol>
-        <li>Clone the repo; install the project environment.</li>
-        <li><code>HF_TOKEN</code> in <code>.env</code> only if regenerating warehouse frames (not needed to re-read committed metrics).</li>
-        <li>Run in order: <code>w03_data_contract.ipynb</code> → <code>w04_baseline_score.ipynb</code> → <code>w05_model.ipynb</code> → <code>w06_validation_audit.ipynb</code> → <code>w07_action_playbook.ipynb</code> → <code>capstone.ipynb</code>.</li>
-        <li>Seeds: <code>random_state=42</code>. Receipts live in <code>work/outputs/</code>; figures in <code>work/figures/</code>.</li>
+        <li>Clone the repository and install the project environment.</li>
+        <li>Put <code>HF_TOKEN</code> in a local <code>.env</code> only if you need to rebuild warehouse queries. Reading the committed metrics does not need it.</li>
+        <li>Re-run notebooks in order: <code>w03_data_contract.ipynb</code>, <code>w04_baseline_score.ipynb</code>, <code>w05_model.ipynb</code>, <code>w06_validation_audit.ipynb</code>, <code>w07_action_playbook.ipynb</code>, then <code>capstone.ipynb</code>.</li>
+        <li>Seed: <code>random_state=42</code>. Metrics JSON files are in <code>work/outputs/</code>. Figures are in <code>work/figures/</code>.</li>
       </ol>
       <p>
-        Source notebooks and report:
-        <a href="https://github.com/rimlazrek1/flyrank-internship/blob/main/work/notebooks/capstone.ipynb">capstone.ipynb</a>
-        ·
-        <a href="https://github.com/rimlazrek1/flyrank-internship/blob/main/work/capstone_report.md">capstone_report.md</a>
-        ·
-        <a href="https://github.com/rimlazrek1/flyrank-internship">repository</a>
+        Code and notebooks:
+        <a href="https://github.com/rimlazrek1/flyrank-internship">https://github.com/rimlazrek1/flyrank-internship</a>
       </p>
     </section>
 
@@ -518,17 +550,10 @@
         Built on the <a href="https://flyrank.ai">FlyRank ML Internship dataset</a>.
       </p>
       <p>
-        Thanks to the FlyRank internship program for the warehouse release, lane framing, and
-        evaluation standards that keep claims public-safe and decision-support honest.
+        Thanks to the FlyRank internship program for access to the warehouse and for the lane
+        setup that keeps this work focused on honest, public-safe claims.
       </p>
     </section>
-
-    <footer>
-      <p>
-        Decision-support research page · Precision@K always reported next to base rate ·
-        no client-identifying details.
-      </p>
-    </footer>
   </div>
 </body>
 </html>
