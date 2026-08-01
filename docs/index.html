@@ -429,12 +429,27 @@
         On that second point, the two lists disagree a lot. On the held-out clients, the baseline
         top 10 and the model top 10 shared <strong>0 of 10</strong> pages. The model more often
         lifted pages with large <code>imp_mar</code> and non-zero <code>ctr_mar</code>, while the
-        rule packed the top with zero-click <code>top_3</code> ties. So the model is not "better
-        Precision@K." It is a different ordering that puts more review stake near the top.
+        rule packed the top with zero-click <code>top_3</code> ties.
       </p>
       <p>
-        A random page split (shown only as a sensitivity check) looked weaker
-        (Precision@50 = 0.74). The number we publish for skill is the client-holdout result.
+        Why still look at the model if it "loses" Precision@K? Because Precision@K only checks
+        the label. It does not ask whether the top of the list is useful for a human. On the
+        eligible holdout, <strong>zero-click pages fill baseline ranks 1 through 50</strong>
+        (they share the maximum <code>ctr_gap</code>, so the rule puts them first). Those pages
+        still count as underperformers, so Precision@50 stays 1.00, but many are tracking or
+        SERP-layout cases rather than title/meta fixes. Meanwhile, underperformers with
+        100k+ impressions and non-zero <code>ctr_mar</code> can sit around baseline rank 7,600+.
+        The model is not better Precision@K. It is a different ordering that puts more review
+        stake near the top.
+      </p>
+      <p>
+        As a sensitivity check we also tried a random page split. Absolute Precision@50 there
+        was 0.74, which is lower than the client-holdout 0.84. That is a bit surprising if you
+        expect random splits to look easier (pages from the same client can leak into both
+        sides). The two checks are not the same pool though: the random-split test had a lower
+        label base rate (0.221) than the client-holdout test (0.274), and Precision@K at small K
+        moves around. We treat the random number as a caution only. The skill number we publish
+        is the client-holdout result.
       </p>
     </section>
 
@@ -471,7 +486,10 @@
         page's own <code>position_tier</code>, and make sure tracking looks sane.
       </p>
       <p>
-        Across all 101,441 March pages, the archetype mix looks like this:
+        Across all 101,441 March pages, the archetype mix looks like this. The five buckets are
+        <strong>mutually exclusive by construction</strong>: each page is assigned exactly one
+        archetype from a fixed if/else order (thin volume first, then deep tier, then zero-click
+        visible, then high-volume CTR gap, else healthy). That is why the shares add to 100%.
       </p>
 
       <table>
