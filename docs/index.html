@@ -202,9 +202,9 @@
       </p>
       <h1>Ranking pages with weak CTR for their Google position</h1>
       <p class="dek">
-        Which pages look weak on clicks for their Google rank, and which ones should a reviewer open first?
-        This page compares a simple <span class="mono">ctr_gap</span> rule with a logistic model
-        on anonymized March 2026 search data.
+        A FlyRank-style content case study: out of thousands of pages that get Google impressions,
+        which weak-CTR pages should a human open first? We compare a simple
+        <span class="mono">ctr_gap</span> rule with a logistic model on anonymized March 2026 data.
       </p>
       <nav class="toc" aria-label="Contents">
         <strong>Contents</strong>
@@ -225,48 +225,51 @@
     <section id="abstract">
       <h2>Abstract</h2>
       <p>
-        Content teams often need a short list of pages to check when click-through rate
-        (<code>ctr</code>) looks low. Low <code>ctr</code> is not always a problem though:
-        pages deep in Google usually get fewer clicks than pages near the top. So we ask a
-        narrower question: which pages get shown enough times, but still click worse than
-        other pages in the same <code>position_tier</code>?
+        FlyRank-style content systems publish and watch many pages at once. The practical
+        bottleneck is the same one content teams hit every week: when click-through rate
+        (<code>ctr</code>) looks low, which page should a human check first? Low
+        <code>ctr</code> alone is not enough, because deep Google ranks naturally get fewer
+        clicks. The sharper question is which pages get enough impressions but still click
+        worse than peers in the same <code>position_tier</code>.
       </p>
       <p>
-        We use the FlyRank ML Internship warehouse, focusing on March 2026
-        (<code>month=2026-03</code>). After aggregating daily rows to one row per page, we have
-        101,441 pages. 61,924 of them have at least 500 impressions that month
-        (<code>imp_mar &gt;= 500</code>). On a client holdout, a hand rule based on
-        <code>ctr_gap</code> gets perfect Precision@50 because it is built from the same
-        pieces as the label. A logistic model gets Precision@50 = 0.84 (base rate 0.464 on the
-        same eligible test pages) and tends to put high-impression pages with non-zero
-        <code>ctr_mar</code> nearer the top. The result is a ranked review list. It is not proof
-        that editing a page will raise clicks, and it is not a model of Google's ranking system.
+        Using the FlyRank ML Internship warehouse for March 2026
+        (<code>month=2026-03</code>), we aggregate to 101,441 pages (61,924 with
+        <code>imp_mar &gt;= 500</code>). On a client holdout, a hand rule based on
+        <code>ctr_gap</code> gets perfect Precision@50 because it reuses the label recipe. A
+        logistic model gets Precision@50 = 0.84 (base rate 0.464 on the same eligible test
+        pages) and tends to put high-impression pages with non-zero <code>ctr_mar</code> nearer
+        the top. The output is a ranked review queue for content ops. It is not proof that
+        editing raises clicks, and it is not a model of Google's ranking system.
       </p>
     </section>
 
     <section id="introduction">
       <h2>Introduction / Problem</h2>
       <p>
+        This paper is a public-safe case study of a FlyRank content problem: after content is
+        live and search data is flowing, someone still has to decide where human attention goes
+        first. Product teams already use hand-written flags and thresholds for that. Those rules
+        help, but they can also flood a queue with the wrong kind of "problem" page.
+      </p>
+      <p>
         Imagine an editor with hundreds of pages that get Google impressions. They cannot open
-        every URL. They need a ranked list: start here first.
+        every URL. Sorting by raw <code>ctr</code> fails in two common ways. A page in
+        <code>position_tier = deep</code> can look weak just because it ranks lower. A page with
+        tiny <code>impressions</code> can look weak by luck. The decision we support is narrower:
+        which pages should a reviewer check first because <code>ctr_mar</code> looks weak for
+        that page's <code>position_tier</code>, while <code>imp_mar</code> is high enough to
+        trust?
       </p>
       <p>
-        The hard part is that <code>ctr</code> alone is a bad sorting key. A page in
-        <code>position_tier = deep</code> can have a low <code>ctr</code> for a normal reason:
-        people see it lower on the results page. A page in <code>top_3</code> with a weak
-        <code>ctr</code> is more interesting. Also, if <code>impressions</code> are tiny,
-        <code>ctr</code> jumps around by luck.
-      </p>
-      <p>
-        So the decision we support is: which pages should a reviewer check first because
-        <code>ctr_mar</code> looks weak for that page's <code>position_tier</code>, while
-        <code>imp_mar</code> is high enough to trust? A wrong pick wastes time (false alarm)
-        or buries a page that was worth checking (miss).
+        A wrong pick wastes time (false alarm) or buries a page that was worth checking (miss).
+        The rest of this paper builds a transparent <code>ctr_gap</code> baseline, a logistic
+        ranker, and an action playbook aimed at that content-ops queue.
       </p>
       <div class="callout">
         <p>
-          Everything below is meant as decision support. We measured ranking quality on held-out
-          clients. We did not run an experiment that proves a rewrite causes more clicks.
+          Everything below is decision support for human review. We measured ranking quality on
+          held-out clients. We did not run an experiment that proves a rewrite causes more clicks.
         </p>
       </div>
     </section>
