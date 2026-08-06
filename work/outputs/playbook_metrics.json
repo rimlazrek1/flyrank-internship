@@ -73,7 +73,7 @@
   "decay": {
     "top_50_overlap": 0.28,
     "top_500_overlap": 0.192,
-    "rank_corr": 0.4887864296061814
+    "rank_corr": 0.48878643313632447
   },
   "minutes_per_review_assumption": 15,
   "no_go": [

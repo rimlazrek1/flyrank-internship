@@ -67,7 +67,7 @@ Editors must decide which pages to review first when click-through rate looks we
 
 **Error / usefulness note.** Baseline wins Precision@K by construction. Model top-10 vs baseline top-10 showed 0/10 overlap in Week 5: the model lifts high-impression, non-zero-CTR underperformers the rule ranks thousands of places lower, and can still include false alarms (high score, label = 0).
 
-**Sensitivity.** A random page split looked weaker (P@50 = 0.74); published skill claims use the client-holdout numbers.
+**Sensitivity.** A random page split looked weaker (P@50 = 0.80); published skill claims use the client-holdout numbers.
 
 ## 6. Interpretation
 

@@ -248,6 +248,73 @@
 
     .callout p:last-child { margin-bottom: 0; }
 
+    .contract {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: 0.85rem;
+      align-items: stretch;
+      margin: 1.15rem 0 1.25rem;
+    }
+
+    .contract-card {
+      background: #0f1720;
+      color: #e8eef7;
+      border-radius: 14px;
+      padding: 1rem 1rem 0.85rem;
+      border: 1px solid #334155;
+      font-family: "JetBrains Mono", ui-monospace, monospace;
+      box-shadow: var(--shadow);
+    }
+
+    .contract-card.model {
+      border-color: #38bdf8;
+      box-shadow: 0 12px 36px rgba(56, 189, 248, 0.12);
+    }
+
+    .contract-card h4 {
+      margin: 0 0 0.75rem;
+      text-align: center;
+      font-size: 0.82rem;
+      font-weight: 650;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #cbd5e1;
+    }
+
+    .contract-card.model h4 { color: #38bdf8; }
+
+    .contract-card ul {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+
+    .contract-card li {
+      margin: 0.4rem 0;
+      padding: 0.55rem 0.7rem;
+      background: #1a2430;
+      border-radius: 999px;
+      font-size: 0.86rem;
+      color: #dbe4f0;
+    }
+
+    .contract-eq {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: "Bricolage Grotesque", system-ui, sans-serif;
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: var(--ink);
+    }
+
+    @media (max-width: 640px) {
+      .contract {
+        grid-template-columns: 1fr;
+      }
+      .contract-eq { padding: 0.2rem 0; }
+    }
+
     figure {
       margin: 1.4rem 0 1.7rem;
       padding: 0.95rem;
@@ -515,13 +582,47 @@
         <code>ctr_gap</code> as a feature, ROC AUC jumps to 1.0. With the honest five features,
         AUC stays around 0.92.
       </p>
+
+      <h3>Comparison contract</h3>
+      <p>
+        Before reading the scores, the rule and the model are locked to the same evaluation
+        contract. If any line below differs, the table is not a fair fight.
+      </p>
+      <div class="contract" aria-label="Comparison contract">
+        <div class="contract-card rule">
+          <h4>The rule</h4>
+          <ul>
+            <li>Same rows</li>
+            <li>Same holdout</li>
+            <li>Same metric + K</li>
+            <li>Same tie policy</li>
+          </ul>
+        </div>
+        <div class="contract-eq" aria-hidden="true">=</div>
+        <div class="contract-card model">
+          <h4>The model</h4>
+          <ul>
+            <li>Same rows</li>
+            <li>Same holdout</li>
+            <li>Same metric + K</li>
+            <li>Same tie policy</li>
+          </ul>
+        </div>
+      </div>
+      <ul>
+        <li><strong>Same rows:</strong> eligible held-out pages only (<code>imp_mar &gt;= 500</code>, n = 17,110).</li>
+        <li><strong>Same holdout:</strong> the same 11 test clients for both rankings.</li>
+        <li><strong>Same metric + K:</strong> Precision@10 / @20 / @50.</li>
+        <li><strong>Same tie policy:</strong> higher score first, then higher <code>imp_mar</code>.</li>
+      </ul>
     </section>
 
     <section id="results">
       <h2>Results</h2>
       <p>
-        Numbers below use the same client holdout and the same eligible test pool
-        (<code>imp_mar &gt;= 500</code>). That pool has 17,110 test pages. The base rate of
+        Numbers below use the comparison contract above: same client holdout, same eligible
+        test pool (<code>imp_mar &gt;= 500</code>), Precision@K, and the same
+        <code>imp_mar</code> tie-break. That pool has 17,110 test pages. The base rate of
         <code>is_ctr_underperformer</code> there is <strong>46.4%</strong>. Precision@K asks:
         of the top K pages in the ranked list, what share truly have the label = 1?
       </p>
@@ -589,7 +690,7 @@
       </p>
       <p>
         As a sensitivity check we also tried a random page split. Absolute Precision@50 there
-        was 0.74, which is lower than the client-holdout 0.84. That is a bit surprising if you
+        was 0.80, which is still lower than the client-holdout 0.84. That is a bit surprising if you
         expect random splits to look easier (pages from the same client can leak into both
         sides). The two checks are not the same pool though: the random-split test had a lower
         label base rate (0.221) than the client-holdout test (0.274), and Precision@K at small K
