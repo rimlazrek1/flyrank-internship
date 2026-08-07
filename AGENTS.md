@@ -1,3 +1,8 @@
+---
+description: 
+alwaysApply: true
+---
+
 # Agent instructions
 
 Before any task in this repo: **read `skills/README.md`** — it is the router.
@@ -8,4 +13,4 @@ Ground rules for this repo:
 - Search the repo before assuming something is missing or not implemented.
 - One task per conversation; finish and verify before starting the next.
 - Never commit datasets (CI blocks them). Never print private data, client names, or raw queries.
-- The intern validates your output — end each task by running the notebook top to bottom.
+- The intern validates your output

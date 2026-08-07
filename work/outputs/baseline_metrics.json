@@ -1,12 +1,14 @@
 {
   "method": "baseline_rule",
   "label": "is_ctr_underperformer",
-  "slice": "month=2026-03",
-  "population": "imp_mar>=500",
-  "n": 61924,
-  "base_rate": 0.3618306310961824,
-  "tie_break": "imp_mar",
-  "precision_at_10": 1.0,
-  "precision_at_20": 1.0,
-  "precision_at_50": 1.0
+  "slice": "features=2026-03+2026-04; label=2026-05",
+  "feature_window": "month=2026-03 + month=2026-04",
+  "outcome_window": "month=2026-05",
+  "population": "imp_prev>=500",
+  "n": 52001,
+  "base_rate": 0.5147593315513164,
+  "tie_break": "imp_prev",
+  "precision_at_10": 0.8,
+  "precision_at_20": 0.85,
+  "precision_at_50": 0.78
 }
