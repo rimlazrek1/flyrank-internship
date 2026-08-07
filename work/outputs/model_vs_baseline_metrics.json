@@ -1,35 +1,120 @@
 {
   "label": "is_ctr_underperformer",
-  "slice": "month=2026-03",
-  "population": "imp_mar>=500 test pages",
+  "slice": "features=2026-03+2026-04; label=2026-05",
+  "population": "imp_prev>=500 test pages",
+  "split": "GroupKFold clients n_splits=4",
+  "eval_list": "one global list; page-equal weight; Precision@10/20/50",
+  "tie_break": "imp_prev",
+  "queue": "OOS client-holdout scores (no all-client refit)",
   "random_state": 42,
-  "n_train_pages": 72470,
-  "n_test_pages_all": 28971,
-  "n_test_pages_eligible": 17110,
-  "n_train_clients": 33,
-  "n_test_clients": 11,
-  "methods": [
+  "fold_rows": [
     {
+      "fold": 1,
       "method": "baseline (ctr_gap)",
-      "split": "client holdout (eligible test pages)",
-      "n_test_pages": 17110,
-      "n_test_clients": 11,
-      "base_rate": 0.4640561075394506,
-      "tie_break": "imp_mar",
+      "n_test_pages": 13566,
+      "n_test_clients": 1,
+      "base_rate": 0.6299572460563173,
+      "tie_break": "imp_prev",
+      "precision_at_10": 0.8,
+      "precision_at_20": 0.7,
+      "precision_at_50": 0.72
+    },
+    {
+      "fold": 1,
+      "method": "logistic regression",
+      "n_test_pages": 13566,
+      "n_test_clients": 1,
+      "base_rate": 0.6299572460563173,
+      "tie_break": "imp_prev",
       "precision_at_10": 1.0,
       "precision_at_20": 1.0,
-      "precision_at_50": 1.0
+      "precision_at_50": 0.98
+    },
+    {
+      "fold": 2,
+      "method": "baseline (ctr_gap)",
+      "n_test_pages": 12812,
+      "n_test_clients": 13,
+      "base_rate": 0.3866687480487043,
+      "tie_break": "imp_prev",
+      "precision_at_10": 0.8,
+      "precision_at_20": 0.75,
+      "precision_at_50": 0.78
+    },
+    {
+      "fold": 2,
+      "method": "logistic regression",
+      "n_test_pages": 12812,
+      "n_test_clients": 13,
+      "base_rate": 0.3866687480487043,
+      "tie_break": "imp_prev",
+      "precision_at_10": 1.0,
+      "precision_at_20": 1.0,
+      "precision_at_50": 0.84
+    },
+    {
+      "fold": 3,
+      "method": "baseline (ctr_gap)",
+      "n_test_pages": 12811,
+      "n_test_clients": 14,
+      "base_rate": 0.5836390601826555,
+      "tie_break": "imp_prev",
+      "precision_at_10": 1.0,
+      "precision_at_20": 0.9,
+      "precision_at_50": 0.84
+    },
+    {
+      "fold": 3,
+      "method": "logistic regression",
+      "n_test_pages": 12811,
+      "n_test_clients": 14,
+      "base_rate": 0.5836390601826555,
+      "tie_break": "imp_prev",
+      "precision_at_10": 1.0,
+      "precision_at_20": 1.0,
+      "precision_at_50": 0.98
+    },
+    {
+      "fold": 4,
+      "method": "baseline (ctr_gap)",
+      "n_test_pages": 12812,
+      "n_test_clients": 13,
+      "base_rate": 0.4519981267561661,
+      "tie_break": "imp_prev",
+      "precision_at_10": 0.8,
+      "precision_at_20": 0.6,
+      "precision_at_50": 0.76
+    },
+    {
+      "fold": 4,
+      "method": "logistic regression",
+      "n_test_pages": 12812,
+      "n_test_clients": 13,
+      "base_rate": 0.4519981267561661,
+      "tie_break": "imp_prev",
+      "precision_at_10": 1.0,
+      "precision_at_20": 1.0,
+      "precision_at_50": 0.98
+    }
+  ],
+  "methods_mean": [
+    {
+      "method": "baseline (ctr_gap)",
+      "n_folds": 4,
+      "n_test_pages_mean": 13000.25,
+      "base_rate_mean": 0.5130657952609609,
+      "precision_at_10": 0.8500000000000001,
+      "precision_at_20": 0.7375,
+      "precision_at_50": 0.775
     },
     {
       "method": "logistic regression",
-      "split": "client holdout (eligible test pages)",
-      "n_test_pages": 17110,
-      "n_test_clients": 11,
-      "base_rate": 0.4640561075394506,
-      "tie_break": "imp_mar",
-      "precision_at_10": 0.7,
-      "precision_at_20": 0.8,
-      "precision_at_50": 0.84
+      "n_folds": 4,
+      "n_test_pages_mean": 13000.25,
+      "base_rate_mean": 0.5130657952609609,
+      "precision_at_10": 1.0,
+      "precision_at_20": 1.0,
+      "precision_at_50": 0.945
     }
   ]
 }
