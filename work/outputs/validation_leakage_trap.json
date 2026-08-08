@@ -1,5 +1,6 @@
 {
-  "auc_honest": 0.9211846918162863,
+  "auc_honest": 0.7592032468725358,
   "auc_leaky": 1.0,
+  "leaky_feature": "ctr_gap_next",
   "n_false_alarm_examples": 5
 }

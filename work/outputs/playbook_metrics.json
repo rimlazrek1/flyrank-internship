@@ -1,88 +1,86 @@
 {
   "lane": "Lane 4 CTR opportunity",
-  "slice": "month=2026-03",
+  "slice": "features=2026-03+2026-04; label=2026-05",
   "label": "is_ctr_underperformer",
   "features": [
-    "imp_mar",
-    "ctr_mar",
-    "pos_avg_mar",
-    "engagement_rate_mar",
+    "imp_prev",
+    "ctr_prev",
+    "pos_avg_prev",
+    "engagement_rate_prev",
     "position_tier"
   ],
-  "n_pages": 101441,
+  "population": "imp_prev>=500",
+  "n_pages": 52001,
+  "queue": "OOS client-holdout scores (no all-client refit)",
   "honest_holdout": {
-    "n_test_pages": 28971,
-    "n_test_clients": 11,
-    "base_rate": 0.27406717061889474,
-    "precision_at_10": 0.7,
-    "precision_at_20": 0.8,
-    "precision_at_50": 0.84
+    "split": "GroupKFold clients n_splits=4",
+    "n_test_pages_mean": 13000.25,
+    "n_test_clients_mean": 10.25,
+    "base_rate": 0.5130657952609609,
+    "precision_at_10": 1.0,
+    "precision_at_20": 1.0,
+    "precision_at_50": 0.945
   },
   "benchmarks": [
     {
       "ranking": "base rate",
-      "P@10": 0.4640561075394506,
-      "P@20": 0.4640561075394506,
-      "P@50": 0.4640561075394506
+      "P@10": 0.5130657952609609,
+      "P@20": 0.5130657952609609,
+      "P@50": 0.5130657952609609
     },
     {
-      "ranking": "ML-07 rule (ctr_gap)",
-      "P@10": 1.0,
-      "P@20": 1.0,
-      "P@50": 1.0
+      "ranking": "ML-07 rule (past ctr_gap)",
+      "P@10": 0.8500000000000001,
+      "P@20": 0.7375,
+      "P@50": 0.775
     },
     {
       "ranking": "ML-08 model",
-      "P@10": 0.7,
-      "P@20": 0.8,
-      "P@50": 0.84
+      "P@10": 1.0,
+      "P@20": 1.0,
+      "P@50": 0.945
     }
   ],
   "archetype_mix": [
     {
-      "archetype": "high_volume_ctr_gap",
-      "pages": 15135,
-      "action": "review_title_meta",
-      "pct_of_all_pages": 14.920002760225156
-    },
-    {
       "archetype": "zero_click_visible",
-      "pages": 7271,
+      "pages": 1695,
       "action": "check_tracking_first",
-      "pct_of_all_pages": 7.167713252038131
+      "pct_of_all_pages": 3.2595527009095977
     },
     {
-      "archetype": "deep_tier",
-      "pages": 11207,
+      "archetype": "high_visibility_ctr_gap",
+      "pages": 15757,
+      "action": "refresh_and_review_ctr",
+      "pct_of_all_pages": 30.30134035883925
+    },
+    {
+      "archetype": "deep_tier_ctr_gap",
+      "pages": 4435,
       "action": "ranking_not_ctr",
-      "pct_of_all_pages": 11.047801184925227
+      "pct_of_all_pages": 8.528682140728064
     },
     {
-      "archetype": "thin_volume",
-      "pages": 39517,
-      "action": "monitor_only",
-      "pct_of_all_pages": 38.95564909651916
-    },
-    {
-      "archetype": "healthy",
-      "pages": 28311,
-      "action": "no_action",
-      "pct_of_all_pages": 27.908833706292327
+      "archetype": "general_ctr_monitor",
+      "pages": 30114,
+      "action": "monitor",
+      "pct_of_all_pages": 57.910424799523085
     }
   ],
   "decay": {
-    "top_50_overlap": 0.28,
-    "top_500_overlap": 0.192,
-    "rank_corr": 0.48878643313632447
+    "top_50_overlap": 0.42,
+    "top_500_overlap": 0.23,
+    "rank_corr": 0.6797719008125187
   },
+  "decay_note": "Mar-only vs Apr-only past features, same May label, GroupKFold OOS scores",
   "minutes_per_review_assumption": 15,
   "no_go": [
     "auto-publish title/meta rewrites",
     "prune / merge / redirect without a human",
-    "act on thin_volume pages",
+    "act on thin_volume pages (imp_prev < 500)",
     "treat deep_tier as a CTR fix",
     "promise a click lift to a client",
-    "use ctr_gap / trend_* as model features",
+    "use past ctr_gap / May columns / trend_* as model features",
     "send the raw queue to a client as an audit"
   ]
 }

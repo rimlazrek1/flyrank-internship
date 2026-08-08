@@ -1,22 +1,26 @@
 {
   "bold_claim": "Our model beats the baseline and finds the pages that need a CTR fix.",
-  "safe_claim": "On March 2026 pages, under a client holdout, logistic regression measured Precision@K above the base rate. A random page split can look different (P@50 = 0.80 there); we report the grouped client-holdout number when claiming skill. The model surfaces high-stake underperformers that the fixed ctr_gap rule ranks hundreds of places lower, even though the rule hits perfect Precision@K on the imp_mar >= 500 pool by design. This is decision-support ranking, not proof that editing a page will raise clicks.",
+  "safe_claim": "On Mar\u2013Apr \u2192 May pages (imp_prev >= 500), under client GroupKFold, logistic regression measured mean Precision@K above the base rate and above the past-ctr_gap baseline (see numbers in the cell below). A random page split can look different \u2014 we report the grouped number when claiming skill. Week-5 observed the model surfaces high-stake underperformers that the fixed ML-07 ctr_gap rule ranks much lower. This is decision-support ranking, not proof that editing a page will raise clicks.",
+  "slice": "features=2026-03+2026-04; label=2026-05",
+  "population": "imp_prev>=500",
   "honest_split": {
-    "split": "AFTER: client holdout",
-    "n_train": 72470,
-    "n_test": 28971,
-    "base_rate": 0.27406717061889474,
-    "precision_at_10": 0.7,
-    "precision_at_20": 0.8,
-    "precision_at_50": 0.84
+    "split": "AFTER: client GroupKFold (mean)",
+    "n_train": 39000,
+    "n_test": 13000,
+    "n_test_clients": 10.25,
+    "base_rate": 0.5130657952609609,
+    "precision_at_10": 1.0,
+    "precision_at_20": 1.0,
+    "precision_at_50": 0.945
   },
   "random_split_for_gap_only": {
     "split": "BEFORE: random page split",
-    "n_train": 76080,
-    "n_test": 25361,
-    "base_rate": 0.22089034344071606,
-    "precision_at_10": 0.6,
-    "precision_at_20": 0.7,
-    "precision_at_50": 0.8
+    "n_train": 39000,
+    "n_test": 13001,
+    "n_test_clients": 38,
+    "base_rate": 0.5147296361818322,
+    "precision_at_10": 1.0,
+    "precision_at_20": 1.0,
+    "precision_at_50": 0.98
   }
 }
