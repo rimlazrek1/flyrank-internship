@@ -17,7 +17,7 @@
     "split": "BEFORE: random page split",
     "n_train": 39000,
     "n_test": 13001,
-    "n_test_clients": 38,
+    "n_test_clients": 40,
     "base_rate": 0.5147296361818322,
     "precision_at_10": 1.0,
     "precision_at_20": 1.0,

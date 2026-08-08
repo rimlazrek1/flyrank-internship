@@ -11,7 +11,7 @@
   ],
   "population": "imp_prev>=500",
   "n_pages": 52001,
-  "queue": "OOS client-holdout scores (no all-client refit)",
+  "queue": "client-holdout scores (no all-client refit)",
   "honest_holdout": {
     "split": "GroupKFold clients n_splits=4",
     "n_test_pages_mean": 13000.25,
@@ -70,9 +70,9 @@
   "decay": {
     "top_50_overlap": 0.42,
     "top_500_overlap": 0.23,
-    "rank_corr": 0.6797719008125187
+    "rank_corr": 0.6797730653069287
   },
-  "decay_note": "Mar-only vs Apr-only past features, same May label, GroupKFold OOS scores",
+  "decay_note": "Mar-only vs Apr-only past features, same May label, GroupKFold client-holdout scores",
   "minutes_per_review_assumption": 15,
   "no_go": [
     "auto-publish title/meta rewrites",

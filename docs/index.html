@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Ranking pages with weak CTR for their Google position</title>
-  <meta name="description" content="CTR opportunity scoring on the FlyRank ML Internship dataset: past-ctr_gap baseline vs logistic regression under client GroupKFold (Mar–Apr → May)." />
+  <meta name="description" content="CTR opportunity scoring on the FlyRank ML Internship warehouse: past-ctr_gap baseline vs logistic regression under client-holdout GroupKFold (Mar–Apr → May)." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,650;12..96,700&family=JetBrains+Mono:wght@400;500&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap" rel="stylesheet" />
@@ -435,38 +435,47 @@
       <h2>Abstract</h2>
       <p>
         Which pages should a reviewer open first when CTR looks weak for their Google position
-        tier? Using Mar–Apr 2026 past features and a May 2026 proxy label from the FlyRank ML
-        Internship dataset (~52k eligible pages, <code>imp_prev &gt;= 500</code>), we compare a
-        transparent past-<code>ctr_gap</code> rule to logistic regression under client GroupKFold.
-        On the same eligible folds (base rate ≈ 51.3%), mean Precision@50 is 0.945 for the model
-        versus 0.775 for the rule. The model also surfaces high-stake pages the fixed rule often
-        ranks much lower. This is a decision-support review queue with action archetypes — not a
-        claim that edits raise clicks, and not a prediction of Google’s algorithm.
+        tier? We use ~52k eligible pages from the FlyRank ML Internship warehouse
+        (Mar–Apr 2026 features → May 2026 label; <code>imp_prev &gt;= 500</code>).
+        A logistic regression ranked by client-holdout GroupKFold is compared to a transparent
+        past-<code>ctr_gap</code> rule. Mean Precision@50 is about 0.945 vs 0.775
+        (base rate ≈ 0.513), and the top-10 lists barely overlap (0/10). The output is a
+        decision-support review queue — not a promise that edits will raise clicks.
       </p>
     </section>
 
     <section id="introduction">
       <h2>1. Question</h2>
       <p>
-        <strong>Research question.</strong> Which pages get shown in Google but attract fewer
-        clicks than peers in the same position tier — and which of those should a reviewer open
-        first?
+        <strong>Problem.</strong> Many pages earn impressions in Google Search but under-click
+        relative to other pages at a similar average position. Reviewers cannot open every URL;
+        they need a short, ranked list of where CTR looks weak <em>for the tier</em>, with a
+        suggested next step.
       </p>
       <p>
-        <strong>Decision supported.</strong> An editor or SEO reviewer chooses a short daily list
-        of pages to inspect. For each page they may rewrite title/meta, improve content match,
-        check tracking, or leave the page alone.
+        <strong>Research question.</strong> On a fixed past→future warehouse slice, which pages
+        should a reviewer open first when CTR looks weak for their Google position tier — and
+        does a simple supervised ranker beat a transparent past-<code>ctr_gap</code> hand rule
+        at putting May underperformers near the top of that list?
       </p>
       <p>
-        Raw CTR alone misleads: expected CTR falls sharply from top ranks to deep ranks, and
-        thin-impression pages produce noisy CTR. We use <strong>past</strong> features (Mar–Apr)
-        to rank pages against a <strong>next-month</strong> proxy label (May), so the queue is a
-        review-now list grounded in an out-of-time outcome — not a same-month tautology.
+        <strong>Decision supported.</strong> A daily (or weekly) <strong>review queue</strong>:
+        open the top-K pages, then choose among rewrite title/meta, check tracking/measurement
+        first, treat as a ranking (not CTR) problem, or monitor. The score orders attention; it
+        does not auto-edit content or promise click lift.
+      </p>
+      <p>
+        <strong>Why this matters.</strong> Precision@K on the queue is the right product metric:
+        false alarms waste editor time; missed underperformers leave easy wins unread.
+        Client-grouped validation matters because pages from the same site share templates and
+        tracking quirks.
       </p>
       <div class="callout">
         <p>
-          Results are observed / measured / directional / decision-support. We do not claim that a
-          rewrite caused more clicks, and we do not claim to have predicted Google’s algorithm.
+          <strong>Claim ladder.</strong> Observed / measured / directional /
+          <strong>decision-support</strong>. We do <strong>not</strong> claim causal proof that
+          an edit raises CTR, access to Google’s ranking algorithm, or that past
+          <code>ctr_gap</code> alone is the ground truth for May.
         </p>
       </div>
     </section>
@@ -474,43 +483,48 @@
     <section id="data">
       <h2>2. Data</h2>
       <p>
-        <strong>Source.</strong> FlyRank ML Internship warehouse (public internship release).
-        Primary table: <code>fact_content_daily_performance</code>. Features aggregate
-        <code>month=2026-03</code> + <code>month=2026-04</code>; the label uses
-        <code>month=2026-05</code>. Optional joins use pseudonymous hash IDs only.
+        <strong>Release.</strong>
+        <a href="https://huggingface.co/datasets/FlyRank/internship-warehouse">FlyRank/internship-warehouse</a>
+        on Hugging Face (gated, instant approval). Build id:
+        <code>flyrank_pseudonymized_warehouse_release_v20260703</code>. Source system: FlyRank
+        <code>central_data_warehouse</code>, dates roughly <strong>2025-01-27 → 2026-06-30</strong>.
       </p>
       <p>
-        <strong>Scale.</strong> The eligible ranking pool (<code>imp_prev &gt;= 500</code>,
-        past ∩ May outcome) has <strong>52,001</strong> page-rows. Unit of analysis: one page
-        (<code>content_hash_id</code>) owned by one client (<code>client_hash_id</code>).
+        <strong>Tables used.</strong>
+        <code>fact_content_daily_performance</code> (~78.8M rows; grain
+        <code>report_date × client × content</code>, month partitions) for past features and the
+        May label. Optional joins to <code>dim_clients</code> / <code>dim_content</code> use hash
+        IDs only — never as model features. We did <strong>not</strong> use
+        <code>fact_content_query_90d</code> (fixed 90-day query mix overlaps the label window) or
+        <code>fact_content_daily_performance_sample</code> (June 2026 sealed end of panel).
       </p>
-      <h3>Fields used</h3>
-      <ul>
-        <li><code>imp_prev</code>: past (Mar–Apr) Google impressions</li>
-        <li><code>ctr_prev</code>: past CTR (percentage points in this warehouse)</li>
-        <li><code>pos_avg_prev</code>: past average Google position</li>
-        <li><code>position_tier</code>: bucket from past position (e.g. <code>top_3</code>, <code>page_1</code>)</li>
-        <li><code>engagement_rate_prev</code>: GA4 engagement when tracking exists</li>
-      </ul>
-      <h3>Label</h3>
       <p>
-        Proxy label <code>is_ctr_underperformer</code>: May CTR below the same-tier May median,
-        with enough May impressions (same floor). That is “worth a look,” not proof the page is
-        broken.
+        <strong>Date windows.</strong> Features from <code>month=2026-03</code> +
+        <code>month=2026-04</code>. Outcome / label from <code>month=2026-05</code>. Eligible
+        frame: past ∩ May with <code>imp_prev &gt;= 500</code> → <strong>52,001</strong>
+        page-rows (~41 clients). Unit of analysis: one page (<code>content_hash_id</code>) under
+        one client (<code>client_hash_id</code>).
+      </p>
+      <p>
+        <strong>Warehouse gotchas we respected.</strong> Rate columns are percentage points
+        (<code>ctr = 0.76</code> means 0.76%). <code>gsc_avg_position = 0</code> means missing,
+        not rank zero. GA4 zeros with <code>ga4_data_available = FALSE</code> are not “no
+        engagement.” Client history depth varies — we stay on mid-panel months, not the June
+        sample.
       </p>
       <h3>Excluded (and why)</h3>
       <ul>
-        <li>Hash IDs as model features (identity, not signal)</li>
-        <li><code>trend_direction</code> / <code>trend_pct</code> (other lane; leakage risk)</li>
-        <li>Product flags and raw query text</li>
+        <li>Hash IDs as model features (identity only)</li>
+        <li><code>trend_direction</code> / <code>trend_pct</code> (other lane; label-adjacent risk)</li>
+        <li>Product flags, raw query text, titles, URLs</li>
         <li>GA4 zeros when tracking is unavailable</li>
         <li>Past <code>ctr_gap</code> / tier median / May columns as <strong>model</strong> features</li>
         <li>Thin-volume pages (<code>imp_prev &lt; 500</code>) from the ranked queue</li>
-        <li>Pages without usable position in the past window</li>
+        <li>Query-90d facts for this snapshot design</li>
       </ul>
       <p>
-        <strong>Public safety.</strong> No client names, private site URLs, or raw private queries
-        appear on this page.
+        <strong>Public-safe.</strong> No client names, private domains, raw URLs, or raw private
+        queries — only scrambled hash IDs and aggregate metrics.
       </p>
     </section>
 
@@ -530,27 +544,37 @@
         <code>engagement_rate_prev</code>, <code>position_tier</code>. None are the May label.
       </p>
 
+      <h3>Label</h3>
+      <p>
+        <code>is_ctr_underperformer</code>: May CTR below the median CTR of the page’s May
+        <code>position_tier</code>, with enough May impressions. Proxy for “worth a look,” not
+        proof the page is broken.
+      </p>
+
       <h3>Baseline</h3>
       <p>
         Rank eligible pages by <strong>past</strong> <code>ctr_gap</code> (past tier-median CTR −
-        past page CTR), tie-break <code>imp_prev</code>. Transparent and fair on this out-of-time
-        frame — not perfect by construction (the label is May).
+        past page CTR), tie-break <code>imp_prev</code>. Transparent hand rule on this
+        out-of-time frame — not perfect by construction (the label is May). On the eligible pool
+        receipt: P@10 = 0.80, P@20 = 0.85, P@50 = 0.78 (base rate ≈ 0.515).
       </p>
 
       <h3>Model</h3>
       <p>
         Logistic regression (<code>random_state=42</code>, <code>max_iter=1000</code>) ranks by
         <code>P(is_ctr_underperformer)</code>. Past <code>ctr_gap</code> is never a model feature.
+        Model queues and model-vs-rule numbers are in Results.
       </p>
 
       <h3>Validation and leakage check</h3>
       <p>
-        Client <strong>GroupKFold</strong> (<code>n_splits=4</code>). Published skill number =
-        mean Precision@K across folds (~13,000 eligible test pages/fold). A random page split is
-        only a sensitivity check. Training with a next-month / label-adjacent feature
-        (<code>ctr_gap_next</code>) drives ROC AUC to 1.0 (trap); honest five-feature AUC stays
-        below that (~0.76). Forbidden in the model: past <code>ctr_gap</code>, May columns,
-        <code>trend_*</code>, IDs.
+        Client <strong>GroupKFold</strong> (<code>n_splits=4</code>): train clients never appear
+        in that fold’s test. Published skill number = mean Precision@K across folds
+        (~13,000 eligible test pages/fold). Queue scores are <strong>client-holdout</strong>
+        (each page scored only when its client was held out; no all-client refit). A random page
+        split is sensitivity-only. Training with May <code>ctr_gap_next</code> drives ROC AUC to
+        1.0 (trap); honest five-feature AUC stays lower (~0.76). Forbidden in the model: past
+        <code>ctr_gap</code>, May columns, <code>trend_*</code>, IDs.
       </p>
 
       <h3>Comparison contract</h3>
@@ -584,16 +608,19 @@
         <li><strong>Same holdout:</strong> same clients held out per fold.</li>
         <li><strong>Same metric + K:</strong> Precision@10 / @20 / @50.</li>
         <li><strong>Same tie policy:</strong> higher score first, then higher <code>imp_prev</code>.</li>
-        <li><strong>Queue scores:</strong> out-of-sample (no all-client refit).</li>
+        <li><strong>Queue scores:</strong> client-holdout (no all-client refit).</li>
       </ul>
     </section>
 
     <section id="results">
-      <h2>4. Results (vs baseline)</h2>
+      <h2>4. Results (model)</h2>
       <p>
-        Client GroupKFold mean; eligible pool <code>imp_prev &gt;= 500</code>; Precision@K;
-        tie-break <code>imp_prev</code>. Base rate <strong>≈ 51.3%</strong>. Precision@K asks:
-        of the top K pages in the ranked list, what share truly have the May label = 1?
+        <strong>Model client-holdout queue</strong>, how it differs from the past-<code>ctr_gap</code>
+        rule, then GroupKFold Precision@K. Client GroupKFold mean; eligible pool
+        <code>imp_prev &gt;= 500</code>; tie-break <code>imp_prev</code>. Base rate
+        <strong>≈ 51.3%</strong>. Top-10 model vs baseline overlap is <strong>0/10</strong> —
+        different review orders. Precision@K asks: of the top K pages in the ranked list, what
+        share truly have the May label = 1?
       </p>
 
       <table>
@@ -640,9 +667,9 @@
       <p>
         <strong>How to read this.</strong> The model wins Precision@K on the same rows and folds.
         The rule is still the honest hand baseline — not a leaky same-month ceiling. Beyond the
-        Precision@K lift, OOS model ranks surface high-stake underperformers that the fixed
-        past-<code>ctr_gap</code> rule often places much lower (dual ranks in the Week-7 playbook
-        CSV).
+        Precision@K lift, client-holdout model ranks surface high-stake underperformers that the
+        fixed past-<code>ctr_gap</code> rule often places much lower (dual ranks in the Week-7
+        playbook CSV).
       </p>
       <p>
         <strong>Safe claim.</strong> On Mar–Apr → May pages (<code>imp_prev &gt;= 500</code>),
@@ -678,10 +705,13 @@
     <section id="recommendations">
       <h2>6. Ranked recommendations</h2>
       <p>
-        Rank eligible pages (<code>imp_prev &gt;= 500</code>) by the <strong>OOS model score</strong>
-        (Week 5/7 GroupKFold), not by past <code>ctr_gap</code>. Attach a reason code → action,
-        then open the top of the list. Before acting: confirm enough past impressions, compare
-        past CTR to the own-tier past median, rule out zero-click SERPs, and verify tracking.
+        Ship the <strong>model client-holdout queue</strong> (not the past-<code>ctr_gap</code>
+        list). Rank eligible pages (<code>imp_prev &gt;= 500</code>) by the client-holdout model
+        score, attach a reason code → action
+        (<code>refresh_and_review_ctr</code> / <code>check_tracking_first</code> /
+        <code>ranking_not_ctr</code> / <code>monitor</code>), then open the top of the list.
+        Before acting: confirm enough past impressions, compare past CTR to the own-tier past
+        median, rule out zero-click SERPs, and verify tracking.
       </p>
       <p>
         Shares below are of the <strong>52,001</strong> eligible pages. Buckets are mutually
@@ -743,15 +773,20 @@
 
     <section id="reproducibility">
       <h2>8. Reproducibility</h2>
+      <p>
+        <strong>Repo.</strong>
+        <a href="https://github.com/rimlazrek1/flyrank-internship">rimlazrek1/flyrank-internship</a>
+        — notebooks under <code>work/notebooks/</code>.
+      </p>
       <ol>
         <li>Clone the repository and install the project environment.</li>
-        <li>Put <code>HF_TOKEN</code> in a local <code>.env</code> only if you need to rebuild warehouse queries. This paper page reads committed receipts; regenerating them needs the warehouse notebooks.</li>
+        <li>Put <code>HF_TOKEN</code> in a local <code>.env</code> only if you need to rebuild warehouse queries. This paper page reads committed receipts; regenerating them needs the warehouse notebooks. The capstone notebook reads JSON/PNG receipts only (no warehouse pull).</li>
         <li>Re-run notebooks in order: <code>w03_data_contract.ipynb</code> → <code>w04_baseline_score.ipynb</code> → <code>w05_model.ipynb</code> → <code>w06_validation_audit.ipynb</code> → <code>w07_action_playbook.ipynb</code> → <code>capstone.ipynb</code>.</li>
-        <li>Seed: <code>random_state=42</code>. Split: client GroupKFold, <code>n_splits=4</code>. Metrics/figures: <code>work/outputs/</code>.</li>
+        <li>Seed: <code>random_state=42</code>. Split: client GroupKFold, <code>n_splits=4</code>. Metrics/figures: <code>work/outputs/</code> (queue CSV is gitignored; top-10 previews live in the capstone notebook).</li>
       </ol>
       <p>
-        Code and notebooks:
-        <a href="https://github.com/rimlazrek1/flyrank-internship">https://github.com/rimlazrek1/flyrank-internship</a>
+        <strong>Public-safe check.</strong> Outputs use hash IDs only — no client names, private
+        URLs, or raw queries.
       </p>
     </section>
 
@@ -761,8 +796,8 @@
         Built on the <a href="https://flyrank.ai">FlyRank ML Internship dataset</a>.
       </p>
       <p>
-        Thanks to the FlyRank internship program for access to the warehouse and for the lane
-        setup that keeps this work focused on honest, public-safe claims.
+        Thanks to the FlyRank internship program for the warehouse release, lane framing, and
+        evaluation standards that keep claims public-safe and decision-support honest.
       </p>
     </section>
   </div>

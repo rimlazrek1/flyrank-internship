@@ -5,7 +5,7 @@
   "split": "GroupKFold clients n_splits=4",
   "eval_list": "one global list; page-equal weight; Precision@10/20/50",
   "tie_break": "imp_prev",
-  "queue": "OOS client-holdout scores (no all-client refit)",
+  "queue": "client-holdout scores (no all-client refit)",
   "random_state": 42,
   "fold_rows": [
     {
