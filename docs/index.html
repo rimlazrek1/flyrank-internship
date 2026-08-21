@@ -7,18 +7,20 @@
   <meta name="description" content="CTR opportunity scoring on the FlyRank ML Internship warehouse: past-ctr_gap baseline vs logistic regression under client-holdout GroupKFold (Mar–Apr → May)." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,650;12..96,700&family=JetBrains+Mono:wght@400;500&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
   <style>
     :root {
-      --ink: #101820;
-      --muted: #5b6775;
-      --line: #d5dce6;
-      --bg: #eef2f6;
-      --panel: #ffffff;
-      --accent: #0b5fff;
-      --accent-ink: #0846c2;
-      --soft: #e8eefc;
-      --shadow: 0 18px 50px rgba(16, 24, 32, 0.08);
+      --ink: #14231f;
+      --muted: #5a6b66;
+      --line: #c5d5cf;
+      --bg: #e6f0ec;
+      --panel: #fbfdfc;
+      --accent: #0f766e;
+      --accent-ink: #115e59;
+      --warm: #c2410c;
+      --warm-soft: #ffedd5;
+      --soft: #d8ebe6;
+      --shadow: 0 14px 40px rgba(20, 35, 31, 0.08);
     }
 
     * { box-sizing: border-box; }
@@ -30,15 +32,20 @@
       color: var(--ink);
       background-color: var(--bg);
       background-image:
-        linear-gradient(180deg, #f7f9fc 0%, var(--bg) 220px),
-        linear-gradient(rgba(16, 24, 32, 0.035) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(16, 24, 32, 0.035) 1px, transparent 1px);
-      background-size: auto, 28px 28px, 28px 28px;
+        radial-gradient(ellipse 90% 50% at 10% -10%, rgba(15, 118, 110, 0.18), transparent 55%),
+        radial-gradient(ellipse 70% 40% at 100% 0%, rgba(194, 65, 12, 0.1), transparent 50%),
+        linear-gradient(135deg, rgba(15, 118, 110, 0.05) 0%, transparent 40%),
+        repeating-linear-gradient(
+          -12deg,
+          transparent,
+          transparent 11px,
+          rgba(20, 35, 31, 0.025) 11px,
+          rgba(20, 35, 31, 0.025) 12px
+        );
       background-attachment: fixed;
-      font-family: "Source Serif 4", Georgia, "Times New Roman", serif;
-      font-size: 1.08rem;
+      font-family: "IBM Plex Sans", system-ui, sans-serif;
+      font-size: 1.05rem;
       line-height: 1.7;
-      font-optical-sizing: auto;
       -webkit-font-smoothing: antialiased;
     }
 
@@ -46,15 +53,15 @@
       content: "";
       position: fixed;
       inset: 0 auto 0 0;
-      width: 6px;
-      background: linear-gradient(180deg, #0b5fff 0%, #101820 55%, #101820 100%);
+      width: 7px;
+      background: linear-gradient(180deg, #0f766e 0%, #c2410c 52%, #14231f 100%);
       z-index: 5;
     }
 
     .wrap {
-      width: min(780px, calc(100% - 2.5rem));
+      width: min(1180px, calc(100% - 2rem));
       margin: 0 auto;
-      padding: 2.75rem 0 5rem;
+      padding: 2rem 0 4.5rem;
       animation: rise 0.55s ease-out both;
     }
 
@@ -65,12 +72,15 @@
 
     header.site {
       position: relative;
-      background: var(--panel);
+      background:
+        linear-gradient(135deg, rgba(15, 118, 110, 0.12), transparent 42%),
+        linear-gradient(225deg, rgba(194, 65, 12, 0.08), transparent 35%),
+        var(--panel);
       border: 1px solid var(--line);
-      border-radius: 18px;
+      border-radius: 4px 22px 22px 4px;
       box-shadow: var(--shadow);
-      padding: 1.75rem 1.6rem 1.4rem;
-      margin-bottom: 2.4rem;
+      padding: 1.85rem clamp(1.2rem, 3vw, 2.2rem) 1.5rem;
+      margin-bottom: 2rem;
       overflow: hidden;
     }
 
@@ -78,8 +88,8 @@
       content: "";
       position: absolute;
       inset: 0 0 auto 0;
-      height: 4px;
-      background: linear-gradient(90deg, #0b5fff, #53a0ff 55%, transparent);
+      height: 5px;
+      background: linear-gradient(90deg, #0f766e, #14b8a6 40%, #ea580c 78%, transparent);
     }
 
     .meta {
@@ -87,7 +97,7 @@
       flex-wrap: wrap;
       gap: 0.45rem 0.65rem;
       margin: 0 0 1.1rem;
-      font-family: "Bricolage Grotesque", system-ui, sans-serif;
+      font-family: "IBM Plex Sans", system-ui, sans-serif;
       font-size: 0.82rem;
       font-weight: 500;
       letter-spacing: 0.01em;
@@ -96,33 +106,33 @@
     .meta span {
       white-space: nowrap;
       color: var(--muted);
-      background: #f3f6fa;
+      background: rgba(255, 255, 255, 0.72);
       border: 1px solid var(--line);
       border-radius: 999px;
       padding: 0.28rem 0.7rem;
     }
 
     .meta span:first-child {
-      color: var(--panel);
-      background: var(--ink);
-      border-color: var(--ink);
+      color: #ecfdf8;
+      background: var(--accent);
+      border-color: var(--accent);
     }
 
     h1 {
-      font-family: "Bricolage Grotesque", system-ui, sans-serif;
+      font-family: "Fraunces", Georgia, serif;
       font-weight: 700;
-      font-size: clamp(2rem, 4.6vw, 2.85rem);
+      font-size: clamp(2rem, 4.2vw, 3rem);
       line-height: 1.12;
-      letter-spacing: -0.035em;
+      letter-spacing: -0.03em;
       margin: 0 0 0.9rem;
-      max-width: 16ch;
+      max-width: 22ch;
     }
 
     .dek {
-      color: #334155;
+      color: #3d524c;
       font-size: 1.08rem;
       margin: 0;
-      max-width: 40rem;
+      max-width: 62rem;
       line-height: 1.65;
     }
 
@@ -134,7 +144,7 @@
 
     nav.toc strong {
       display: block;
-      font-family: "Bricolage Grotesque", system-ui, sans-serif;
+      font-family: "IBM Plex Sans", system-ui, sans-serif;
       font-size: 0.75rem;
       font-weight: 650;
       letter-spacing: 0.08em;
@@ -148,9 +158,9 @@
       margin: 0;
       padding: 0;
       display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 0.35rem 1rem;
-      font-family: "Bricolage Grotesque", system-ui, sans-serif;
+      font-family: "IBM Plex Sans", system-ui, sans-serif;
       font-size: 0.95rem;
       font-weight: 500;
       counter-reset: toc;
@@ -186,6 +196,10 @@
       background: var(--soft);
     }
 
+    @media (max-width: 900px) {
+      nav.toc ol { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+
     @media (max-width: 640px) {
       body::before { width: 4px; }
       nav.toc ol { grid-template-columns: 1fr; }
@@ -193,57 +207,60 @@
     }
 
     section {
-      margin: 2.6rem 0;
+      margin: 2.4rem 0;
       scroll-margin-top: 1.2rem;
+      padding: 0 clamp(0.15rem, 1vw, 0.4rem);
     }
 
     h2 {
-      font-family: "Bricolage Grotesque", system-ui, sans-serif;
-      font-weight: 650;
-      font-size: 1.55rem;
+      font-family: "Fraunces", Georgia, serif;
+      font-weight: 700;
+      font-size: 1.6rem;
       letter-spacing: -0.02em;
       margin: 0 0 0.95rem;
-      padding-bottom: 0.55rem;
-      border-bottom: 2px solid var(--ink);
+      padding-bottom: 0.5rem;
+      border-bottom: 3px solid var(--accent);
       display: inline-block;
-      min-width: min(100%, 12rem);
+      min-width: min(100%, 14rem);
+      color: var(--ink);
     }
 
     h3 {
-      font-family: "Bricolage Grotesque", system-ui, sans-serif;
+      font-family: "IBM Plex Sans", system-ui, sans-serif;
       font-size: 1.05rem;
       font-weight: 650;
       letter-spacing: -0.01em;
       margin: 1.4rem 0 0.45rem;
+      color: var(--accent-ink);
     }
 
-    p { margin: 0 0 0.95rem; }
+    p { margin: 0 0 0.95rem; max-width: none; }
 
     ul, ol { margin: 0 0 0.95rem; padding-left: 1.25rem; }
     li { margin: 0.28rem 0; }
 
     code, .mono {
-      font-family: "JetBrains Mono", ui-monospace, monospace;
+      font-family: "IBM Plex Mono", ui-monospace, monospace;
       font-size: 0.86em;
       font-weight: 500;
     }
 
     code {
       background: var(--soft);
-      color: #123a8a;
+      color: var(--accent-ink);
       padding: 0.12em 0.38em;
       border-radius: 5px;
-      border: 1px solid #d5e0f7;
+      border: 1px solid #a7cfc7;
     }
 
     .callout {
-      background: linear-gradient(135deg, #f4f7ff 0%, #eef4ff 100%);
-      border: 1px solid #c9d8f5;
-      border-left: 4px solid var(--accent);
-      padding: 1rem 1.1rem;
+      background: linear-gradient(135deg, #ecfdf8 0%, #fff7ed 100%);
+      border: 1px solid #99d5cb;
+      border-left: 4px solid var(--warm);
+      padding: 1rem 1.15rem;
       margin: 1.15rem 0 1.35rem;
-      border-radius: 0 12px 12px 0;
-      box-shadow: 0 8px 24px rgba(11, 95, 255, 0.06);
+      border-radius: 0 14px 14px 0;
+      box-shadow: 0 8px 24px rgba(15, 118, 110, 0.07);
     }
 
     .callout p:last-child { margin-bottom: 0; }
@@ -257,18 +274,18 @@
     }
 
     .contract-card {
-      background: #0f1720;
+      background: #12302c;
       color: #e8eef7;
       border-radius: 14px;
       padding: 1rem 1rem 0.85rem;
-      border: 1px solid #334155;
-      font-family: "JetBrains Mono", ui-monospace, monospace;
+      border: 1px solid #2a554e;
+      font-family: "IBM Plex Mono", ui-monospace, monospace;
       box-shadow: var(--shadow);
     }
 
     .contract-card.model {
-      border-color: #38bdf8;
-      box-shadow: 0 12px 36px rgba(56, 189, 248, 0.12);
+      border-color: #fb923c;
+      box-shadow: 0 12px 36px rgba(194, 65, 12, 0.16);
     }
 
     .contract-card h4 {
@@ -278,10 +295,10 @@
       font-weight: 650;
       letter-spacing: 0.08em;
       text-transform: uppercase;
-      color: #cbd5e1;
+      color: #9dc9c0;
     }
 
-    .contract-card.model h4 { color: #38bdf8; }
+    .contract-card.model h4 { color: #fdba74; }
 
     .contract-card ul {
       list-style: none;
@@ -292,7 +309,7 @@
     .contract-card li {
       margin: 0.4rem 0;
       padding: 0.55rem 0.7rem;
-      background: #1a2430;
+      background: #1a3f39;
       border-radius: 999px;
       font-size: 0.86rem;
       color: #dbe4f0;
@@ -302,10 +319,10 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      font-family: "Bricolage Grotesque", system-ui, sans-serif;
+      font-family: "Fraunces", Georgia, serif;
       font-size: 1.8rem;
       font-weight: 700;
-      color: var(--ink);
+      color: var(--warm);
     }
 
     @media (max-width: 640px) {
@@ -315,35 +332,62 @@
       .contract-eq { padding: 0.2rem 0; }
     }
 
+    .fig-gallery {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 1rem;
+      margin: 1.2rem 0 1.6rem;
+    }
+
+    .fig-gallery figure {
+      margin: 0;
+      height: 100%;
+    }
+
+    .fig-gallery img {
+      width: 100%;
+      max-width: none;
+    }
+
+    @media (max-width: 900px) {
+      .fig-gallery { grid-template-columns: 1fr; }
+      .fig-gallery img { width: min(100%, 420px); }
+    }
+
     figure {
-      margin: 1.4rem 0 1.7rem;
-      padding: 0.95rem;
+      margin: 1.2rem 0 1.5rem;
+      padding: 0.85rem;
       background: var(--panel);
       border: 1px solid var(--line);
-      border-radius: 16px;
+      border-radius: 14px;
       box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
 
     figure img {
       display: block;
-      width: 100%;
+      width: min(100%, 480px);
       height: auto;
       border-radius: 8px;
-      background: #f8fafc;
+      background: #f4faf8;
     }
 
     figcaption {
-      margin-top: 0.8rem;
-      padding-top: 0.75rem;
+      margin-top: 0.7rem;
+      padding-top: 0.65rem;
       border-top: 1px solid var(--line);
       color: var(--muted);
-      font-size: 0.95rem;
+      font-size: 0.92rem;
       line-height: 1.55;
+      width: 100%;
+      max-width: 42rem;
     }
 
     figcaption strong {
       color: var(--ink);
-      font-family: "Bricolage Grotesque", system-ui, sans-serif;
+      font-family: "IBM Plex Sans", system-ui, sans-serif;
       font-weight: 650;
     }
 
@@ -358,7 +402,7 @@
       border-radius: 14px;
       overflow: hidden;
       box-shadow: var(--shadow);
-      font-family: "Bricolage Grotesque", system-ui, sans-serif;
+      font-family: "IBM Plex Sans", system-ui, sans-serif;
     }
 
     th, td {
@@ -370,20 +414,20 @@
     tr:last-child td { border-bottom: none; }
 
     th {
-      background: #101820;
-      color: #f8fafc;
+      background: #12302c;
+      color: #ecfdf8;
       font-weight: 650;
       font-size: 0.88rem;
       letter-spacing: 0.02em;
     }
 
-    tbody tr:nth-child(even) td { background: #f7f9fc; }
-    tbody tr:hover td { background: var(--soft); }
+    tbody tr:nth-child(even) td { background: #f3faf7; }
+    tbody tr:hover td { background: var(--warm-soft); }
 
     td.num, th.num {
       text-align: right;
       font-variant-numeric: tabular-nums;
-      font-family: "JetBrains Mono", ui-monospace, monospace;
+      font-family: "IBM Plex Mono", ui-monospace, monospace;
       font-size: 0.9em;
     }
 
@@ -393,7 +437,7 @@
       transition: color 0.15s ease;
     }
 
-    a:hover { color: var(--accent); }
+    a:hover { color: var(--warm); }
 
     @media (prefers-reduced-motion: reduce) {
       html { scroll-behavior: auto; }
