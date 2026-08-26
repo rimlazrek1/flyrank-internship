@@ -711,7 +711,7 @@
       <figure>
         <img src="figures/w07_fold_precision_at_50.png" alt="Grouped bars of Precision at 50 by client fold for the rule and the logistic model" />
         <figcaption>
-          <strong>Figure 4. Per-fold Precision@50.</strong>
+          <strong>Figure 2. Per-fold Precision@50.</strong>
           Each bar is one client GroupKFold fold. The model stays above the past-<code>ctr_gap</code>
           rule in every fold.
         </figcaption>
@@ -720,7 +720,7 @@
       <figure>
         <img src="figures/w07_fold_precision_at_k.png" alt="Three panels of per-fold Precision at 10, 20, and 50 for the rule and the model" />
         <figcaption>
-          <strong>Figure 5. Per-fold Precision@10 / @20 / @50.</strong>
+          <strong>Figure 3. Per-fold Precision@10 / @20 / @50.</strong>
           The ranking lift is not a single-K artifact: the model is at or above the rule at each
           cutoff in each fold.
         </figcaption>
@@ -729,7 +729,7 @@
       <figure>
         <img src="figures/w07_fold_base_rate.png" alt="Bar chart of the May underperformer rate in each client fold" />
         <figcaption>
-          <strong>Figure 6. Eligible base rate by fold.</strong>
+          <strong>Figure 4. Eligible base rate by fold.</strong>
           Client holdouts change the mix of pages, so the May underperformer rate is not the same
           in every fold.
         </figcaption>
@@ -738,7 +738,7 @@
       <figure>
         <img src="figures/w07_roc.png" alt="ROC curves for client-holdout model scores and the past-ctr_gap rule versus the May underperformer label" />
         <figcaption>
-          <strong>Figure 8. ROC on client-holdout scores.</strong>
+          <strong>Figure 5. ROC on client-holdout scores.</strong>
           Each page is scored by a model that never trained on that client. The curve is the full
           ranking, not only the top 10 / 20 / 50.
         </figcaption>
@@ -747,7 +747,7 @@
       <figure>
         <img src="figures/w07_score_by_label.png" alt="Histogram of client-holdout model scores split by May underperformer label" />
         <figcaption>
-          <strong>Figure 9. Model score by May label.</strong>
+          <strong>Figure 6. Model score by May label.</strong>
           Pages that underperformed in May tend to sit higher on the client-holdout score.
         </figcaption>
       </figure>
@@ -763,7 +763,7 @@
       <figure>
         <img src="figures/w07_rank_scatter.png" alt="Scatter of model rank versus past-ctr_gap rule rank for eligible pages" />
         <figcaption>
-          <strong>Figure 10. Model rank vs rule rank.</strong>
+          <strong>Figure 7. Model rank vs rule rank.</strong>
           Points off the diagonal are pages the two queues would send a reviewer to in a different
           order — that disagreement is the operational lift.
         </figcaption>
@@ -792,7 +792,7 @@
       <figure>
         <img src="figures/w07_queue_stability.png" alt="Chart of Mar-only vs Apr-only queue overlap and rank correlation" />
         <figcaption>
-          <strong>Figure 2. Queue stability (Mar-only vs Apr-only past features → same May label).</strong>
+          <strong>Figure 8. Queue stability (Mar-only vs Apr-only past features → same May label).</strong>
           Top-50 overlap 0.42, top-500 overlap 0.23, rank correlation ≈ 0.68. Shifting the past
           window reshuffles the top of the queue — treat rankings as perishable.
         </figcaption>
@@ -801,7 +801,7 @@
       <figure>
         <img src="figures/w07_leakage_auc.png" alt="Bar chart comparing honest past-feature ROC AUC to leaky next-month ctr gap AUC" />
         <figcaption>
-          <strong>Figure 7. Leakage trap ROC AUC.</strong>
+          <strong>Figure 9. Leakage trap ROC AUC.</strong>
           Honest five-feature AUC is ~0.76. Adding May <code>ctr_gap_next</code> pushes AUC to 1.0 —
           that column is not a feature.
         </figcaption>
@@ -859,7 +859,7 @@
       <figure>
         <img src="figures/w07_archetype_mix.png" alt="Bar chart of how many eligible pages fall into each action archetype" />
         <figcaption>
-          <strong>Figure 3. Eligible-page archetype mix.</strong>
+          <strong>Figure 10. Eligible-page archetype mix.</strong>
           Most eligible pages are <code>monitor</code>. Spend review time on
           <code>high_visibility_ctr_gap</code> and <code>zero_click_visible</code> first.
         </figcaption>
@@ -878,7 +878,7 @@
     </section>
 
     <section id="reproducibility">
-      <h2>8. Reproducibility</h2>
+      <h2>7. Reproducibility</h2>
       <p>
         <strong>Repo.</strong>
         <a href="https://github.com/rimlazrek1/flyrank-internship">rimlazrek1/flyrank-internship</a>
@@ -897,7 +897,7 @@
     </section>
 
     <section id="acknowledgments">
-      <h2>9. Acknowledgments &amp; data credit</h2>
+      <h2>8. Acknowledgments &amp; data credit</h2>
       <p>
         Built on the <a href="https://flyrank.ai">FlyRank ML Internship dataset</a>.
       </p>
