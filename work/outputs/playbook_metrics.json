@@ -70,7 +70,7 @@
   "decay": {
     "top_50_overlap": 0.42,
     "top_500_overlap": 0.23,
-    "rank_corr": 0.6797730653069287
+    "rank_corr": 0.6797688179527567
   },
   "decay_note": "Mar-only vs Apr-only past features, same May label, GroupKFold client-holdout scores",
   "minutes_per_review_assumption": 15,

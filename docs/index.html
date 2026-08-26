@@ -708,6 +708,50 @@
         </figcaption>
       </figure>
 
+      <figure>
+        <img src="figures/w07_fold_precision_at_50.png" alt="Grouped bars of Precision at 50 by client fold for the rule and the logistic model" />
+        <figcaption>
+          <strong>Figure 4. Per-fold Precision@50.</strong>
+          Each bar is one client GroupKFold fold. The model stays above the past-<code>ctr_gap</code>
+          rule in every fold.
+        </figcaption>
+      </figure>
+
+      <figure>
+        <img src="figures/w07_fold_precision_at_k.png" alt="Three panels of per-fold Precision at 10, 20, and 50 for the rule and the model" />
+        <figcaption>
+          <strong>Figure 5. Per-fold Precision@10 / @20 / @50.</strong>
+          The ranking lift is not a single-K artifact: the model is at or above the rule at each
+          cutoff in each fold.
+        </figcaption>
+      </figure>
+
+      <figure>
+        <img src="figures/w07_fold_base_rate.png" alt="Bar chart of the May underperformer rate in each client fold" />
+        <figcaption>
+          <strong>Figure 6. Eligible base rate by fold.</strong>
+          Client holdouts change the mix of pages, so the May underperformer rate is not the same
+          in every fold.
+        </figcaption>
+      </figure>
+
+      <figure>
+        <img src="figures/w07_roc.png" alt="ROC curves for client-holdout model scores and the past-ctr_gap rule versus the May underperformer label" />
+        <figcaption>
+          <strong>Figure 8. ROC on client-holdout scores.</strong>
+          Each page is scored by a model that never trained on that client. The curve is the full
+          ranking, not only the top 10 / 20 / 50.
+        </figcaption>
+      </figure>
+
+      <figure>
+        <img src="figures/w07_score_by_label.png" alt="Histogram of client-holdout model scores split by May underperformer label" />
+        <figcaption>
+          <strong>Figure 9. Model score by May label.</strong>
+          Pages that underperformed in May tend to sit higher on the client-holdout score.
+        </figcaption>
+      </figure>
+
       <p>
         <strong>How to read this.</strong> The model wins Precision@K on the same rows and folds.
         The rule is still the honest hand baseline — not a leaky same-month ceiling. Beyond the
@@ -715,6 +759,15 @@
         fixed past-<code>ctr_gap</code> rule often places much lower (dual ranks in the Week-7
         playbook CSV).
       </p>
+
+      <figure>
+        <img src="figures/w07_rank_scatter.png" alt="Scatter of model rank versus past-ctr_gap rule rank for eligible pages" />
+        <figcaption>
+          <strong>Figure 10. Model rank vs rule rank.</strong>
+          Points off the diagonal are pages the two queues would send a reviewer to in a different
+          order — that disagreement is the operational lift.
+        </figcaption>
+      </figure>
       <p>
         <strong>Safe claim.</strong> On Mar–Apr → May pages (<code>imp_prev &gt;= 500</code>),
         under client GroupKFold, logistic regression measured mean Precision@K above the base
@@ -742,6 +795,15 @@
           <strong>Figure 2. Queue stability (Mar-only vs Apr-only past features → same May label).</strong>
           Top-50 overlap 0.42, top-500 overlap 0.23, rank correlation ≈ 0.68. Shifting the past
           window reshuffles the top of the queue — treat rankings as perishable.
+        </figcaption>
+      </figure>
+
+      <figure>
+        <img src="figures/w07_leakage_auc.png" alt="Bar chart comparing honest past-feature ROC AUC to leaky next-month ctr gap AUC" />
+        <figcaption>
+          <strong>Figure 7. Leakage trap ROC AUC.</strong>
+          Honest five-feature AUC is ~0.76. Adding May <code>ctr_gap_next</code> pushes AUC to 1.0 —
+          that column is not a feature.
         </figcaption>
       </figure>
     </section>
